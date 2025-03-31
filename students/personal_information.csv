@@ -1,0 +1,11 @@
+user,full_name,date_of_birth,gender,nationality,marital_status,address,profile_image,email,mobile,spoken_language,emergency_contact_name,emergency_contact,enrollment_date
+Hawraa,Ali Ahmed,23/04/2005,Male,Iraqi,Single,"Baghdad, Iraq",,ali.ahmed@example.com,1234567890,Arabic,Ahmed Ali,987654321,05/02/2025
+Hawraa,Sara Hassan,15/08/2006,Female,American,Single,"Basra, Iraq",,sara.hassan@example.com,9876543210,Arabic,Hassan Jasim,543210987,05/02/2025
+Hawraa,Omar Khalid,10/06/2004,Male,Italian,Single,"Mosul, Iraq",,omar.khalid@example.com,1122334455,Arabic,Khalid Omar,9988776655,05/02/2025
+Hawraa,Layla Kareem,05/03/2007,Female,Iraqi,Single,"Najaf, Iraq",,layla.kareem@example.com,5566778899,Arabic,Kareem Hassan,7766554433,05/02/2025
+Hawraa,Hussein Ali,22/11/2005,Male,Iraqi,Single,"Karbala, Iraq",,hussein.ali@example.com,2233445566,Arabic,Ali Hussein,6655443322,05/02/2025
+Hawraa,Zainab Yousif,01/12/2006,Female,Iraqi,Single,"Baghdad, Iraq",,zainab.yousif@example.com,3344556677,Arabic,Yousif Ahmed,7788990011,05/02/2025
+Hawraa,Mahmoud Saleh,18/07/2004,Male,Mexican,Single,"Erbil, Iraq",,mahmoud.saleh@example.com,4455667788,Kurdish,Saleh Mahmoud,1122334455,05/02/2025
+Hawraa,Hala Ibrahim,30/10/2005,Female,Iraqi,Single,"Sulaymaniyah, Iraq",,hala.ibrahim@example.com,6677889900,Kurdish,Ibrahim Khalil,2233445566,05/02/2025
+Hawraa,Mustafa Faris,12/09/2003,Male,French,Single,"Kirkuk, Iraq",,mustafa.faris@example.com,7788990011,Arabic,Faris Mustafa,3344556677,05/02/2025
+Hawraa,Rasha Hamid,08/01/2007,Female,Iraqi,Single,"Diyala, Iraq",,rasha.hamid@example.com,8899001122,Arabic,Hamid Ali,4455667788,05/02/2025

@@ -1,0 +1,12 @@
+<tr>
+  <td>{{ student.full_name }}</td>
+  <td>{{ student.email }}</td>
+  <td>{{ student.mobile }}</td>
+  <td>{{ student.grade_level }}</td>
+  <td>
+    <!-- Add a link to the single-report generator in the reports app -->
+    <a href="{% url 'generate_single_student_report' student.id %}" class="btn btn-sm btn-info">
+      Generate Report
+    </a>
+  </td>
+</tr>

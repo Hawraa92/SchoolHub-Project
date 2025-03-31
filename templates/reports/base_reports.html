@@ -1,0 +1,12 @@
+<!-- templates/reports/base_reports.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Reports Dashboard</h2>
+  <!-- أضف بعض الظلال والفراغات للبطاقة -->
+  <div class="card shadow p-4">
+    {% block reports_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

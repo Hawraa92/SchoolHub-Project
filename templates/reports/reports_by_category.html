@@ -1,0 +1,33 @@
+<!-- templates/reports/reports_by_category.html -->
+{% extends "reports/base_reports.html" %}
+{% block reports_content %}
+<h3>Reports in Category: {{ category }}</h3>
+
+<!-- استبدل 'reports_list' بـ 'reports_home' -->
+<a href="{% url 'reports_home' %}" class="btn btn-secondary mb-3">View All Reports</a>
+
+<table class="table mt-3">
+  <thead>
+    <tr>
+      <th>Student</th>
+      <th>Report Category</th>
+      <th>Report Type</th>
+      <th>Generated At</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for report in reports %}
+    <tr>
+      <td>{{ report.student.full_name }}</td>
+      <td>{{ report.get_category_display }}</td>
+      <td>{{ report.report_type }}</td>
+      <td>{{ report.generated_at }}</td>
+      <td>
+        <a href="{% url 'view_report' report.id %}" class="btn btn-sm btn-info">View</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

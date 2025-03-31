@@ -1,0 +1,20 @@
+{% extends 'reports/base_reports.html' %}
+{% block reports_content %}
+<h3>Overall School Performance Analysis</h3>
+<canvas id="performanceChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+var ctx = document.getElementById('performanceChart').getContext('2d');
+var chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: Object.keys({{ analysis_data|safe }}),
+        datasets: [{
+            label: 'Average Score',
+            data: Object.values({{ analysis_data|safe }}),
+            backgroundColor: ['blue', 'red', 'green']
+        }]
+    }
+});
+</script>
+{% endblock %}
