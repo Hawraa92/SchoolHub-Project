@@ -18,12 +18,11 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']  # السماح بجميع الهوستات أثناء التطوير
-
+ALLOWED_HOSTS = ['*']  
 # Application definition
 INSTALLED_APPS = [
     'jazzmin',
-    'django_crontab',  # لإعداد النسخ الاحتياطي اليومي باستخدام cron
+    'django_crontab', 
     'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -68,14 +67,8 @@ WSGI_APPLICATION = 'SchoolHub.wsgi.application'
 
 # Database
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'schoolhub_db',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+        'default': dj_database_url.config(default=config('DATABASE_URL'))
+
 }
 
 # Tell Django to use your custom user model
@@ -162,7 +155,7 @@ JAZZMIN_SETTINGS = {
     "custom_js": ["assets/js/custom_admin.js"],
 }
 
-JJAZZMIN_UI_TWEAKS = {
+JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
     "footer_small_text": False,
     "body_small_text": False,

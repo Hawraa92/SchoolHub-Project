@@ -6,12 +6,11 @@ from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-# إعداد بيئة Django
+# Set the Django settings module environment variable
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SchoolHub.settings')
 import django
 django.setup()
 
-# استيراد النماذج المطلوبة
 from accounts.models import User
 from students.models import (
     Student,
@@ -23,46 +22,51 @@ from students.models import (
 )
 
 class Command(BaseCommand):
-    help = "Import the first 10 rows from students_cleaned_final.csv into Student and related models."
+    help = "Import the first 5000 rows from cleaned_student_data.csv into Student and related models."
 
     def parse_date(self, s):
-        """Convert a string in YYYY-MM-DD format to a date object."""
+        """Convert a string in 'YYYY-MM-DD' format to a date object."""
         try:
             return datetime.strptime(s, "%Y-%m-%d").date()
         except Exception:
             return None
 
     def parse_decimal(self, s):
+        """Convert a string to a Decimal. Returns 0.0 if conversion fails."""
         try:
             return Decimal(s)
         except Exception:
             return Decimal("0.0")
 
     def parse_float(self, s):
+        """Convert a string to a float. Returns 0.0 if conversion fails."""
         try:
             return float(s)
         except Exception:
             return 0.0
 
     def str_to_bool(self, s):
+        """Convert a string to a boolean value. Returns True if the string indicates 'yes', 'true', or '1'."""
         if isinstance(s, str):
             return s.strip().lower() in ['yes', 'true', '1']
         return bool(s)
 
     def handle(self, *args, **options):
-        csv_path = r"C:\Users\Hawraa\Downloads\students_cleaned_final.csv"
+        # Define the path to the cleaned CSV file
+        csv_path = r"C:\Users\Hawraa\Desktop\school_management_system\students\cleaned_student_data.csv"
         if not os.path.exists(csv_path):
             raise CommandError(f"The file {csv_path} does not exist.")
 
-        # لحل مشكلة التكرار أثناء الاختبار (يتم حذف سجلات الطلاب الحالية)
+        # Delete all existing Student records for testing purposes
         Student.objects.all().delete()
         self.stdout.write("All existing Student records have been deleted for testing purposes.")
 
+        # Open the CSV file and read its content using DictReader
         with open(csv_path, mode='r', encoding='utf-8', newline='') as file:
             reader = csv.DictReader(file)
             rows = list(reader)
-            # الاحتفاظ بأول 10 صفوف فقط للاختبار
-            rows = rows[:10]
+            # Limit to the first 5000 rows
+            rows = rows[:5000]
 
             success_count = 0
             error_count = 0
@@ -71,7 +75,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"Processing row {idx+1}...")
                 try:
                     with transaction.atomic():
-                        # إنشاء أو جلب المستخدم
+                        # Process user information
                         username = row.get('user', '').strip()
                         if not username:
                             raise ValueError("Missing 'user' field.")
@@ -81,7 +85,7 @@ class Command(BaseCommand):
                             defaults={'email': email}
                         )
 
-                        # معالجة بيانات الطالب
+                        # Process Student data
                         enrollment_date = self.parse_date(row.get('enrollment_date', ''))
                         dob = self.parse_date(row.get('date_of_birth', ''))
                         if not enrollment_date or not dob:
@@ -118,7 +122,7 @@ class Command(BaseCommand):
                         else:
                             self.stdout.write(f"Updated student: {student_obj.full_name}")
 
-                        # معالجة المواد الدراسية (subjects)
+                        # Process Subjects
                         subjects_str = row.get('subjects', '').strip()
                         if subjects_str:
                             student_obj.subjects.clear()
@@ -128,7 +132,7 @@ class Command(BaseCommand):
                                     subj_obj, _ = Subject.objects.get_or_create(name=subj_name)
                                     student_obj.subjects.add(subj_obj)
 
-                        # معالجة الدرجات بصيغة "subject:score;subject:score;..."
+                        # Process Grades (formatted as "subject:score;subject:score;...")
                         grades_str = row.get('grades', '').strip()
                         if grades_str:
                             for grade_item in grades_str.split(';'):
@@ -144,7 +148,7 @@ class Command(BaseCommand):
                                             score=score
                                         )
 
-                        # معالجة HealthInformation
+                        # Process HealthInformation data
                         raw_family_pressures = row.get('family_pressures', '').strip()
                         if raw_family_pressures.lower() in ["", "not specified"]:
                             raw_family_pressures = "None"
@@ -166,7 +170,7 @@ class Command(BaseCommand):
                             defaults=health_defaults
                         )
 
-                        # معالجة EconomicSituation
+                        # Process EconomicSituation data
                         econ_defaults = {
                             "is_orphan": self.str_to_bool(row.get('is_orphan', '')),
                             "father_occupation": row.get('father_occupation', '').strip(),
@@ -201,7 +205,7 @@ class Command(BaseCommand):
                             defaults=econ_defaults
                         )
 
-                        # معالجة SocialMediaAndTechnology
+                        # Process SocialMediaAndTechnology data
                         raw_smi = row.get('social_media_impact_on_studies', '').strip()
                         if raw_smi.lower() in ["", "not specified"]:
                             raw_smi = "None"

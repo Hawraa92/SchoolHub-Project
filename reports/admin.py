@@ -3,27 +3,17 @@ import json
 import csv
 import logging
 from io import BytesIO
-
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import reverse
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html, mark_safe
 from django.shortcuts import redirect
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-
-# Import Document from python-docx
 from docx import Document
-
 from .models import Report, ReportsDashboard
-from teachers.models import Teacher
 
 logger = logging.getLogger(__name__)
-
-# =============================================================================
-# Export Functions
-# =============================================================================
 
 def export_reports_pdf(modeladmin, request, queryset):
     """
@@ -50,21 +40,17 @@ def export_reports_pdf(modeladmin, request, queryset):
             pdf.drawString(100, y, f"Generated At: {report.generated_at}")
             y -= 25
 
-            # Attempt to load report data
+            # Attempt to print report data (assuming it is a dict)
             if isinstance(report.data, dict):
-                data_dict = report.data
+                for key, value in report.data.items():
+                    pdf.drawString(120, y, f"{key}: {value}")
+                    y -= 15
+                    if y < 100:
+                        pdf.showPage()
+                        y = 750
             else:
-                try:
-                    data_dict = json.loads(report.data)
-                except (TypeError, json.JSONDecodeError):
-                    data_dict = {"Report Data": str(report.data)}
-
-            for key, value in data_dict.items():
-                pdf.drawString(120, y, f"{key}: {value}")
+                pdf.drawString(120, y, f"Data: {report.data}")
                 y -= 15
-                if y < 100:
-                    pdf.showPage()
-                    y = 750
             y -= 20
 
         pdf.save()
@@ -82,8 +68,7 @@ def export_reports_csv(modeladmin, request, queryset):
         filename = f'reports_{datetime.datetime.now().strftime("%Y%m%d")}.csv'
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         writer = csv.writer(response)
-        writer.writerow(["Student", "Report Category", "Report Type", "Status", "Generated At", "Data"])
-
+        writer.writerow(["Student", "Category", "Report Type", "Status", "Generated At", "Data"])
         for report in queryset:
             data_str = (report.data if isinstance(report.data, str)
                         else json.dumps(report.data, ensure_ascii=False))
@@ -102,7 +87,7 @@ def export_reports_csv(modeladmin, request, queryset):
 
 def export_reports_word(modeladmin, request, queryset):
     """
-    Admin action to export selected reports as Word.
+    Admin action to export selected reports as a Word document.
     """
     try:
         doc = Document()
@@ -111,7 +96,6 @@ def export_reports_word(modeladmin, request, queryset):
             doc.add_paragraph(f"Report for {report.student.full_name} - {report.get_category_display()}")
             if index < len(queryset) - 1:
                 doc.add_page_break()
-
         response = HttpResponse(
             content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
@@ -122,14 +106,7 @@ def export_reports_word(modeladmin, request, queryset):
         logger.exception("Error exporting reports to Word: %s", e)
         return HttpResponse("An error occurred while generating the Word document.", status=500)
 
-# =============================================================================
-# Report Model Admin
-# =============================================================================
-
 class ReportAdmin(admin.ModelAdmin):
-    """
-    Custom admin for the Report model.
-    """
     list_display = ('student', 'get_category_display', 'report_type', 'status', 'generated_at')
     list_filter = ('category', 'status')
     search_fields = ('student__full_name', 'report_type', 'category')
@@ -138,47 +115,33 @@ class ReportAdmin(admin.ModelAdmin):
     fields = ('student', 'category', 'report_type', 'status', 'generated_at', 'pretty_data')
 
     def pretty_data(self, obj):
-        """
-        Display the JSON data in a formatted HTML table.
-        """
-        if isinstance(obj.data, dict):
-            data_dict = obj.data
-        else:
-            try:
+        """Display JSON data in a formatted HTML table."""
+        try:
+            if isinstance(obj.data, dict):
+                data_dict = obj.data
+            else:
                 data_dict = json.loads(obj.data)
-            except (TypeError, json.JSONDecodeError):
-                return obj.data
+        except Exception:
+            return obj.data
 
-        html = "<table class='table table-bordered' style='max-width: 600px;'>"
+        html = "<table style='max-width:600px; border-collapse: collapse;'>"
         for key, value in data_dict.items():
             if value is None:
                 value = "<em>Not Available</em>"
-            html += f"<tr><th style='width:150px;'>{key}</th><td>{value}</td></tr>"
+            html += f"<tr style='border:1px solid #ccc;'><th style='padding:4px; text-align:left; background:#f5f5f5;'>{key}</th><td style='padding:4px;'>{value}</td></tr>"
         html += "</table>"
         return mark_safe(html)
     pretty_data.short_description = "Report Data"
 
     def has_add_permission(self, request):
-        """
-        Prevent manual addition of reports through the admin.
-        """
+        # Prevent manual addition via admin.
         return False
-
-    def has_delete_permission(self, request, obj=None):
-        """
-        Allow manual deletion of reports through the admin.
-        """
-        return True
 
 admin.site.register(Report, ReportAdmin)
 
-# =============================================================================
-# Dummy Model Admin for Reports Dashboard
-# =============================================================================
-
 class ReportsDashboardAdmin(admin.ModelAdmin):
     """
-    Dummy admin for ReportsDashboard. When accessed, it redirects to the reports dashboard (/reports/).
+    Dummy admin for ReportsDashboard. Redirects to the reports dashboard.
     """
     def changelist_view(self, request, extra_context=None):
         return redirect("/reports/")

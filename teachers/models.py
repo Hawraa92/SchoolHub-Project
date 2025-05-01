@@ -4,7 +4,7 @@ from accounts.models import User
 from datetime import date
 
 class Teacher(models.Model):
-    # Basic Personal Information only
+    # Basic Personal Information
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,

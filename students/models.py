@@ -417,14 +417,21 @@ class Student(models.Model):
             weights["income"] * income_val
         )
         
-        # 7. Determine performance category based on thresholds
-        if perf_index >= 0.80:
-            performance_category = "Excellent"
-        elif perf_index >= 0.60:
-            performance_category = "Average"
+       # 7. Determine performance category based on thresholds
+
+        if perf_index >= 0.85:
+          performance_category = "Excellent"
+        elif perf_index >= 0.75:
+          performance_category = "Very Good"
+        elif perf_index >= 0.65:
+          performance_category = "Good"
+        elif perf_index >= 0.50:
+          performance_category = "Average"
         else:
-            performance_category = "Needs Improvement"
+          performance_category = "Needs Improvement"
         return performance_category, perf_index
+
+
 
 # =============================================================================
 # Grade Model

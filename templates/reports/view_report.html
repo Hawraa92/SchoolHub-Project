@@ -1,20 +1,16 @@
-<!-- templates/reports/view_report.html -->
 {% extends 'reports/base_reports.html' %}
 {% block reports_content %}
-
-<!-- يمكن استخدام بطاقة (Card) لعرض تفاصيل التقرير -->
 <div class="card shadow mb-4">
   <div class="card-header bg-dark text-white">
     <h4 class="mb-0">Report for {{ report.student.full_name }}</h4>
   </div>
   <div class="card-body">
     <p><strong>Report Type:</strong> {{ report.report_type }}</p>
-    <p><strong>Generated At:</strong> {{ report.generated_at }}</p>
+    <p><strong>Generated At:</strong> {{ report.generated_at|date:"M d, Y h:i A" }}</p>
     <hr>
     <h5>Report Data</h5>
-    <!-- يمكنك تنسيق البيانات بشكل مختلف بدلاً من <pre> -->
+    <!-- Use json_script filter to safely output JSON data -->
     <pre class="bg-light p-3 rounded">{{ report.data|json_script:"report-data" }}</pre>
   </div>
 </div>
-
 {% endblock %}

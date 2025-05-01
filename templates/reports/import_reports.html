@@ -1,22 +1,17 @@
-<!-- templates/reports/import_reports.html -->
-{% extends 'reports/base_reports.html' %}
+{% extends "reports/base_reports.html" %}
 {% block reports_content %}
-<h3>Import Reports CSV</h3>
-
+<h3>Import Reports from CSV</h3>
 {% if error_message %}
-<div class="alert alert-danger">{{ error_message }}</div>
+  <div class="alert alert-danger">{{ error_message }}</div>
+{% elif success_message %}
+  <div class="alert alert-success">{{ success_message }}</div>
 {% endif %}
-
-{% if success_message %}
-<div class="alert alert-success">{{ success_message }}</div>
-{% endif %}
-
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <div class="form-group">
-    <label for="csv_file">CSV File:</label>
+    <label for="csv_file">Upload CSV File:</label>
     <input type="file" name="csv_file" id="csv_file" class="form-control" required>
   </div>
-  <button type="submit" class="btn btn-primary mt-2">Import</button>
+  <button type="submit" class="btn btn-primary mt-2">Import Reports</button>
 </form>
 {% endblock %}

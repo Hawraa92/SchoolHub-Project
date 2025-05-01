@@ -17,24 +17,24 @@ Including another URLconf
 """
 URL configuration for the SchoolHub project.
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import home  # If you have a home view, keep it; otherwise, remove or adjust.
+from .views import home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home, name='home'),  # Home view placeholder
+    path('', home, name='home'),  # Root URL now uses the updated home view
     path('students/', include('students.urls')),
     path('accounts/', include('accounts.urls')),
     path('teachers/', include('teachers.urls')),
-
-    # IMPORTANT: include the reports app URLs
     path('reports/', include('reports.urls')),
+    path('predictor/', include('predictor.urls')),
+
 ]
 
-# Serving media and static files in development (optional)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
