@@ -1,7 +1,7 @@
 """
 Django Admin settings for SchoolHub's student management system.
 
-This file configures (optionally) export actions (PDF/Excel/Word/CSV) and ModelAdmin settings for various models.
+This file configures export actions (PDF/Excel/Word/CSV) and ModelAdmin settings for various models.
 """
 
 import datetime
@@ -21,9 +21,6 @@ from .models import (
     Student,
     ChronicIllness,
     Subject,
-    EyeCondition,
-    Allergy,
-    Vaccination,
     Grade,
     EconomicSituation,
     SocialMediaAndTechnology,
@@ -36,12 +33,12 @@ from teachers.models import Teacher
 logger = logging.getLogger(__name__)
 
 # =============================================================================
-# (Optional) Export Functions
+# Export Functions
 # =============================================================================
 
 def export_student_pdf(modeladmin, request, queryset):
     """
-    Export selected students as PDF.
+    Export selected students as a PDF document.
     """
     try:
         response = HttpResponse(content_type='application/pdf')
@@ -50,14 +47,12 @@ def export_student_pdf(modeladmin, request, queryset):
         pdf = canvas.Canvas(response, pagesize=letter)
         pdf.setTitle("Student Information")
         y = 750
-
         for student in queryset:
             if y < 100:
                 pdf.showPage()
                 y = 750
             pdf.drawString(100, y, f"Student Name: {student.full_name}")
             y -= 20
-
         pdf.save()
         return response
     except Exception as e:
@@ -66,7 +61,7 @@ def export_student_pdf(modeladmin, request, queryset):
 
 def export_students_excel(modeladmin, request, queryset):
     """
-    Export selected students as Excel.
+    Export selected students as an Excel file.
     """
     try:
         data = [
@@ -97,7 +92,7 @@ def export_students_excel(modeladmin, request, queryset):
 
 def export_students_word(modeladmin, request, queryset):
     """
-    Export selected students as Word.
+    Export selected students as a Word document.
     """
     try:
         doc = Document()
@@ -118,7 +113,7 @@ def export_students_word(modeladmin, request, queryset):
 
 def export_students_csv(modeladmin, request, queryset):
     """
-    Export selected students as CSV.
+    Export selected students as a CSV file.
     """
     import csv
     try:
@@ -129,21 +124,18 @@ def export_students_csv(modeladmin, request, queryset):
         writer.writerow([
             "Full Name",
             "Student ID",
-            "Email",
-            "Mobile",
+            "Age",
             "Grade Level",
             "Academic Performance",
-            "Enrollment Date"
+
         ])
         for student in queryset:
             writer.writerow([
                 student.full_name,
                 student.student_id,
-                student.email,
-                student.mobile,
+                student.age,
                 student.grade_level,
                 student.academic_performance,
-                student.enrollment_date,
             ])
         return response
     except Exception as e:
@@ -163,10 +155,12 @@ class GradeInline(admin.TabularInline):
         'max_score',
         'percentage',
         'grade_level',
-        'gpa_points',
         'exam_type',
         'semester',
+        'teacher',
         'date_recorded',
+        'weight',
+        'gpa_points',
     )
     readonly_fields = ('percentage', 'grade_level', 'gpa_points', 'date_recorded')
     show_change_link = True
@@ -178,79 +172,26 @@ class HealthInformationInline(admin.StackedInline):
     verbose_name_plural = "Health Information"
     fk_name = 'student'
     fieldsets = (
-        ('General Health Information', {
+        ('Physical Health', {
             'fields': (
-                'surgical_history',
                 'has_chronic_illness',
-                'chronic_illnesses_type',
-                'allergies',
-                'vaccinations',
-                'eye_conditions',
-                'left_eye_vision',
-                'right_eye_vision',
-                'dental_health',
-                'ear_health',
                 'general_health_status',
                 'last_medical_checkup',
                 'weight',
                 'height',
-                'blood_type',
-                'disabilities',
             )
         }),
-        ('Psychological Disorders and Behaviors', {
+        ('Psychological/Behavioral', {
             'fields': (
                 'academic_stress',
                 'motivation',
                 'depression',
                 'sleep_disorder',
-                'anxiety',
-                'psychological_trauma',
-                'isolation_tendency',
-                'aggressive_behavior',
-            )
-        }),
-        ('Psychosocial Factors', {
-            'fields': (
-                'personal_family_issues',
-                'bullying',
                 'study_life_balance',
-                'psychological_support',
-                'psychological_notes',
                 'family_pressures',
             )
         }),
-        ('Sensitive Information', {
-            'fields': (
-                'practices_masturbation',
-                'abuse_at_home',
-                'abuse_at_school',
-                'sexual_harassment_at_home',
-                'sexual_harassment_at_school',
-                'alcohol_consumption',
-                'smoking',
-                'drug_use',
-            )
-        }),
     )
-
-    def get_readonly_fields(self, request, obj=None):
-        """
-        Prevent editing sensitive info unless user is superuser.
-        """
-        sensitive_fields = (
-            'practices_masturbation',
-            'abuse_at_home',
-            'abuse_at_school',
-            'sexual_harassment_at_home',
-            'sexual_harassment_at_school',
-            'alcohol_consumption',
-            'smoking',
-            'drug_use',
-        )
-        if not request.user.is_superuser:
-            return sensitive_fields
-        return super().get_readonly_fields(request, obj)
 
 class EconomicSituationInline(admin.StackedInline):
     model = EconomicSituation
@@ -258,10 +199,7 @@ class EconomicSituationInline(admin.StackedInline):
     verbose_name_plural = "Economic Situation"
     fk_name = 'student'
     fieldsets = (
-        ("Orphan Status", {
-            "fields": ("is_orphan",)
-        }),
-        ("Guardian/Economic Information", {
+        ("Economic Information", {
             "fields": (
                 'father_occupation',
                 'mother_occupation',
@@ -278,8 +216,6 @@ class EconomicSituationInline(admin.StackedInline):
                 'daily_food_availability',
                 'has_school_uniform',
                 'has_stationery',
-                'receives_financial_aid',
-                'receives_meal_assistance',
                 'receives_scholarship',
                 'receives_private_tutoring',
                 'daily_study_hours',
@@ -315,21 +251,14 @@ class StudentAdmin(admin.ModelAdmin):
         'mobile',
         'academic_performance',
         'get_age',
-        'generate_report_link',  # حقل جديد لإنشاء زر توليد التقرير
+        'generate_report_link',
     )
     list_display_links = ('full_name',)
-
-    list_filter = (
-        'grade_level',
-        'academic_performance',
-        'gender',
-        'nationality',
-    )
+    list_filter = ('grade_level', 'academic_performance', 'gender', 'nationality',)
     search_fields = (
         'full_name',
         'email',
         'mobile',
-        'guardian_name',
         'grades__subject__name',
         'grades__teacher__full_name',
         'grades__history__reason_for_update',
@@ -344,12 +273,10 @@ class StudentAdmin(admin.ModelAdmin):
                 'get_age',
                 'gender',
                 'nationality',
-                'marital_status',
                 'address',
                 'profile_image',
                 'email',
                 'mobile',
-                'spoken_language',
                 'emergency_contact_name',
                 'emergency_contact',
                 'enrollment_date',
@@ -357,12 +284,8 @@ class StudentAdmin(admin.ModelAdmin):
         }),
         ('Guardian Information', {
             'fields': (
-                'guardian_name',
                 'guardian_relationship',
-                'guardian_contact',
                 'guardian_address',
-                'guardian_job_title',
-                'guardian_chronic_illnesses',
                 'guardian_employment_status',
                 'guardian_monthly_income',
                 'guardian_education',
@@ -380,7 +303,7 @@ class StudentAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ('get_age', 'student_id', 'academic_performance')
-    filter_horizontal = ('subjects', 'guardian_chronic_illnesses',)
+    filter_horizontal = ('subjects',)
     ordering = ('student_id',)
     inlines = [
         GradeInline,
@@ -389,8 +312,6 @@ class StudentAdmin(admin.ModelAdmin):
         SocialMediaAndTechnologyInline,
     ]
     list_select_related = ('user',)
-
-    # أضف إجراءات التصدير لتظهر في قائمة الإجراءات (Actions) في واجهة الـAdmin
     actions = [export_students_csv, export_student_pdf, export_students_excel, export_students_word]
 
     @admin.display(description="Age")
@@ -398,14 +319,7 @@ class StudentAdmin(admin.ModelAdmin):
         return obj.age or "-"
 
     def generate_report_link(self, obj):
-        """
-        يُنشئ زرًا ينقلك إلى صفحة توليد تقرير فردي في تطبيق التقارير.
-        يفترض أن لديك مسار (URL) باسم 'generate_single_student_report'
-        يقبل رقم الطالب أو UUID.
-        """
         if obj.pk:
-            # إذا كنت تستخدم int PK: path("generate/single/<int:student_id>/", ...)
-            # إذا UUID: path("generate/single/<uuid:student_id>/", ...)
             url = reverse("generate_single_student_report", args=[obj.pk])
             return format_html('<a class="button" href="{}" target="_blank">Generate Report</a>', url)
         return "-"
@@ -413,120 +327,16 @@ class StudentAdmin(admin.ModelAdmin):
 
 @admin.register(EconomicSituation)
 class EconomicSituationAdmin(admin.ModelAdmin):
-    fieldsets = (
-        ("Orphan Status", {
-            "fields": ("is_orphan",)
-        }),
-        ("Guardian/Economic Information", {
-            "fields": (
-                'father_occupation',
-                'mother_occupation',
-                'parents_marital_status',
-                'family_income_level',
-                'income_source',
-                'monthly_expenses',
-                'housing_status',
-                'access_to_electricity',
-                'has_access_to_water',
-                'access_to_internet',
-                'has_private_study_room',
-                'number_of_rooms_in_home',
-                'daily_food_availability',
-                'has_school_uniform',
-                'has_stationery',
-                'receives_financial_aid',
-                'receives_meal_assistance',
-                'receives_scholarship',
-                'receives_private_tutoring',
-                'daily_study_hours',
-                'works_after_school',
-                'work_hours_per_week',
-                'responsible_for_household_tasks',
-                'transportation_mode',
-                'distance_to_school',
-                'has_health_insurance',
-                'household_size',
-                'sibling_rank',
-            )
-        }),
-    )
-    list_display = (
-        'student',
-        'is_orphan',
-        'father_occupation',
-        'mother_occupation',
-        'parents_marital_status',
-        'family_income_level',
-        'housing_status',
-        'transportation_mode',
-        'receives_financial_aid',
-    )
-    list_filter = (
-        'is_orphan',
-        'housing_status',
-        'transportation_mode',
-        'receives_financial_aid',
-        'has_access_to_water',
-        'has_private_study_room',
-    )
-    search_fields = ('student__full_name',)
-    autocomplete_fields = ('student',)
+    pass
 
 @admin.register(SocialMediaAndTechnology)
 class SocialMediaAndTechnologyAdmin(admin.ModelAdmin):
-    list_display = (
-        'student',
-        'has_phone',
-        'has_laptop',
-        'has_tablet',
-        'has_pc',
-        'device_usage_purpose',
-        'has_social_media_accounts',
-        'daily_screen_time',
-        'social_media_impact_on_studies',
-        'content_type_watched',
-        'social_media_impact_on_sleep',
-        'social_media_impact_on_focus',
-        'plays_video_games',
-        'daily_gaming_hours',
-        'aware_of_cybersecurity',
-        'experienced_electronic_extortion',
-    )
-    list_filter = (
-        'has_phone',
-        'has_laptop',
-        'has_tablet',
-        'has_pc',
-        'has_social_media_accounts',
-        'plays_video_games',
-        'aware_of_cybersecurity',
-        'experienced_electronic_extortion',
-    )
-    search_fields = ('student__full_name',)
-    autocomplete_fields = ('student',)
+    pass
 
 @admin.register(ChronicIllness)
 class ChronicIllnessAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-
-@admin.register(EyeCondition)
-class EyeConditionAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
-
-@admin.register(Allergy)
-class AllergyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'allergy_type')
-    list_filter = ('allergy_type',)
-    search_fields = ('name',)
-
-@admin.register(Vaccination)
-class VaccinationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'date_administered', 'status')
-    list_filter = ('status', 'date_administered')
-    search_fields = ('name',)
-    date_hierarchy = 'date_administered'
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
@@ -544,12 +354,13 @@ class GradeAdmin(admin.ModelAdmin):
         'get_grade_level',
         'exam_type',
         'get_semester',
-        'get_teacher',
+        'teacher',
         'date_recorded',
+        'weight',
+        'gpa_points',
     )
-    list_filter = ('exam_type', 'date_recorded')
+    list_filter = ('exam_type',)
     search_fields = ('student__full_name', 'subject__name', 'teacher__full_name')
-    date_hierarchy = 'date_recorded'
     ordering = ('-date_recorded',)
     autocomplete_fields = ('student', 'subject')
     list_select_related = ('student', 'subject', 'teacher')
@@ -562,25 +373,17 @@ class GradeAdmin(admin.ModelAdmin):
     def get_semester(self, obj):
         return getattr(obj, 'semester', "-")
 
-    @admin.display(description="Teacher")
-    def get_teacher(self, obj):
-        return obj.teacher.full_name if obj.teacher else "-"
-
 @admin.register(GradeHistory)
 class GradeHistoryAdmin(admin.ModelAdmin):
     list_display = ('grade', 'updated_by', 'previous_score', 'new_score', 'updated_at')
-    list_filter = ('updated_at',)
     search_fields = (
         'grade__student__full_name',
         'grade__subject__name',
         'updated_by__full_name',
         'reason_for_update'
     )
-    date_hierarchy = 'updated_at'
 
 @admin.register(StudentPerformanceTrend)
 class StudentPerformanceTrendAdmin(admin.ModelAdmin):
     list_display = ('student', 'semester', 'average_percentage', 'gpa')
-    list_filter = ('semester',)
     search_fields = ('student__full_name',)
-    autocomplete_fields = ('student',)
