@@ -1,132 +1,211 @@
-/* Global Styles */
-body {
-    background: linear-gradient(135deg, #f6f9ff, #eef1f7, #e4ecf4);
-    background-size: 500% 500%;
-    animation: gradientBG 20s ease infinite;
+/* ============================== *
+ *   Advanced Design System 2.0   *
+ * ============================== */
+
+ :root {
+    /* ========= Rich Color Palette ========= */
+    --primary-color: #1A1F36; /* Deep Navy */
+    --secondary-color: #4F86F7; /* Sky Blue */
+    --accent-color: #F9A826; /* Gold Yellow */
+    
+    --success: #34D399; /* Emerald Green */
+    --warning: #FBBF24; /* Warm Amber */
+    --danger: #F87171; /* Coral Red */
+    --info: #60A5FA; /* Sky Blue Light */
+    
+    /* ========= Light Theme ========= */
+    --bg-color: #FAFBFF;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --text-primary: #1A1F36;
+    --text-muted: #6B7280;
+    --border-color: rgba(0, 0, 0, 0.08);
+  
+    /* ========= Dark Theme ========= */
+    --bg-color-dark: #111827;
+    --card-bg-dark: rgba(17, 24, 39, 0.88);
+    --text-primary-dark: #F9FAFB;
+    --text-muted-dark: #9CA3AF;
+    --border-color-dark: rgba(255, 255, 255, 0.12);
+    
+    /* ========= Design Tokens ========= */
+    --radius-base: 0.8rem;
+    --radius-sm: 0.4rem;
+    --shadow-base: 0 8px 24px rgba(0,0,0,0.08);
+    --shadow-hover: 0 12px 30px rgba(0,0,0,0.12);
+    --transition-base: all 0.4s ease;
+    
+    --font-base: 'Poppins', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.5rem;
+    --line-height: 1.6;
+    
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
+  }
+  
+  /* ========= Theme Switching ========= */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: var(--bg-color-dark);
+      --card-bg: var(--card-bg-dark);
+      --text-primary: var(--text-primary-dark);
+      --text-muted: var(--text-muted-dark);
+      --border-color: var(--border-color-dark);
+    }
+  }
+  [data-theme="dark"] {
+    --bg-color: var(--bg-color-dark);
+    --card-bg: var(--card-bg-dark);
+    --text-primary: var(--text-primary-dark);
+    --text-muted: var(--text-muted-dark);
+    --border-color: var(--border-color-dark);
+  }
+  
+  /* ========= Base Reset ========= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
     min-height: 100vh;
-    font-family: 'Poppins', sans-serif;
-    color: #333;
-    line-height: 1.6;
-}
-
-/* Gradient Animation */
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Card Styling */
-.card {
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-    background: #ffffff;
-    padding: 2rem;
-}
-
-/* Table Header Styling */
-.table thead {
-    background: linear-gradient(to right, #ff4b7d, #ff6f61);
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 600;
-    text-transform: capitalize;
-    letter-spacing: 0.5px;
-    border-radius: 10px 10px 0 0;
-}
-
-.table thead th {
-    padding: 14px;
-    text-align: center;
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    background-clip: padding-box;
-}
-
-.table thead th:last-child {
-    border-right: none;
-}
-
-/* Performance Color Codes */
-.performance-Excellent {
-    background: #d4edda;
-    color: #155724;
-}
-
-.performance-VeryGood {
-    background: #d1ecf1;
-    color: #0c5460;
-}
-
-.performance-Good {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.performance-Average {
-    background: #ffeeba;
-    color: #856404;
-}
-
-.performance-NeedsImprovement {
-    background: #f8d7da;
-    color: #721c24;
-    font-weight: bold;
-    box-shadow: inset 0 0 8px rgba(255, 0, 0, 0.2);
-}
-
-/* Search Box Styling */
-.search-box {
-    max-width: 500px;
-    margin: 40px auto 20px auto;
-    text-align: center;
-}
-
-.search-input {
-    border-radius: 35px;
-    padding: 14px 24px;
-    border: 2px solid #ccc;
+    font-family: var(--font-base);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+    background: radial-gradient(ellipse at top, var(--bg-color) 0%, #eef2f8 100%);
+    transition: var(--transition-base);
+  }
+  
+  /* ========= Typography ========= */
+  h1, h2, h3, h4 {
+    color: var(--text-primary);
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+  }
+  h1 { font-size: 2.75rem; }
+  h2 { font-size: 2.25rem; }
+  h3 { font-size: 1.75rem; }
+  h4 { font-size: 1.5rem; }
+  
+  /* ========= Card ========= */
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius-base);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-base);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px) brightness(1.05);
+    transition: var(--transition-base);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-hover);
+    backdrop-filter: blur(14px) brightness(1.08);
+  }
+  
+  /* ========= Table ========= */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius-base);
+    margin-bottom: var(--space-lg);
+  }
+  .table {
     width: 100%;
-    font-size: 1rem;
-    transition: 0.4s;
-    box-shadow: 0 0 0 transparent;
-}
-
-.search-input:focus {
-    border-color: #ff4b7d;
-    box-shadow: 0 0 10px rgba(255, 75, 125, 0.4);
-    outline: none;
-}
-
-/* Hover Effect for Rows */
-.table-hover tbody tr:hover {
-    background-color: #f5f7fa;
-    transform: scale(1.005);
-    transition: all 0.25s ease-in-out;
-    cursor: pointer;
-}
-
-/* Counter Styling */
-.counter {
-    font-size: 1.15rem;
-    margin-bottom: 20px;
-    color: #444;
+    min-width: 650px;
+    border-collapse: collapse;
+  }
+  .table thead {
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  }
+  .table th {
+    color: #fff;
     font-weight: 600;
-    text-align: center;
-}
-
-/* Mobile Responsiveness */
-@media screen and (max-width: 768px) {
-    .card {
-        padding: 1.5rem;
-    }
-
-    .table th, .table td {
-        font-size: 0.9rem;
-    }
-
-    .search-input {
-        font-size: 0.9rem;
-        padding: 12px 20px;
-    }
-}
+    text-transform: uppercase;
+    padding: var(--space-sm);
+    letter-spacing: 0.05em;
+  }
+  .table td {
+    padding: var(--space-sm);
+    border-top: 1px solid var(--border-color);
+  }
+  .table tbody tr {
+    transition: var(--transition-base);
+  }
+  .table tbody tr:hover {
+    background-color: rgba(79, 134, 247, 0.08);
+  }
+  
+  /* ========= Performance Badges ========= */
+  .performance-label {
+    display: inline-block;
+    padding: 0.4em 0.8em;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .performance-Excellent { background: linear-gradient(135deg, #a3e635, #65a30d); color: #1a1f36; }
+  .performance-VeryGood  { background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: #1a1f36; }
+  .performance-Good      { background: linear-gradient(135deg, #facc15, #eab308); color: #1a1f36; }
+  .performance-Average   { background: linear-gradient(135deg, #fdba74, #fb923c); color: #1a1f36; }
+  .performance-NeedsImprovement {
+    background: linear-gradient(135deg, #f87171, #ef4444);
+    color: #1a1f36;
+    position: relative;
+  }
+  
+  /* ========= Search Input ========= */
+  .search-box {
+    position: relative;
+    max-width: 500px;
+    margin: var(--space-xl) auto;
+  }
+  .search-input {
+    width: 100%;
+    padding: var(--space-sm) var(--space-lg) var(--space-sm) 3rem;
+    font-size: var(--text-base);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-base);
+    background: var(--card-bg);
+    transition: var(--transition-base);
+  }
+  .search-input:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 5px rgba(79, 134, 247, 0.25);
+    outline: none;
+  }
+  .search-box::before {
+    content: '🔎';
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    font-size: 1.3rem;
+  }
+  
+  /* ========= Utilities ========= */
+  .text-gradient {
+    background: linear-gradient(45deg, var(--secondary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  @media (max-width: 768px) {
+    h1 { font-size: 2.25rem; }
+    .card { padding: var(--space-md); }
+    .search-input { font-size: 0.95rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+  

@@ -8,7 +8,7 @@ from pathlib import Path
 from decouple import config
 import os
 from django.contrib.messages import constants as messages
-import django_heroku
+
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -18,9 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['schoolhubsystem.herokuapp.com', 'localhost']
+ALLOWED_HOSTS = ['*']  
 # Application definition
 INSTALLED_APPS = [
     'jazzmin',
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -70,7 +71,6 @@ WSGI_APPLICATION = 'SchoolHub.wsgi.application'
 # Database
 DATABASES = {
     'default': dj_database_url.config(default=config('DATABASE_URL'))
-        
 
 }
 
@@ -95,7 +95,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-django_heroku.settings(locals())
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 STATICFILES_FINDERS = [
@@ -211,4 +211,3 @@ CRONJOBS = [
 ]
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1_000_000
-
