@@ -1,0 +1,374 @@
+/* Advanced Light Theme with Dynamic Gradients and Glass Effects */
+:root {
+  --primary-color: #f0f8ff;       /* AliceBlue */
+  --accent-color: #003366;        /* Deep Navy Blue */
+  --secondary-accent: #00509e;    /* Uniform Blue */
+  --navbar-bg: rgba(240,248,255,0.95);
+  --light-bg: #e9eff7;            /* Soft Light Blue */
+  --text-color: #002244;          /* Dark Navy */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --gradient-bg: linear-gradient(135deg, #e9eff7 0%, #ffffff 100%);
+  --cta-gradient: linear-gradient(135deg, #003366 0%, #00509e 100%);
+  --transition-speed: 0.4s;
+  --border-radius: 12px;
+  --box-shadow-light: 0 6px 15px rgba(0, 0, 0, 0.1);
+  --box-shadow-heavy: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Advanced Dark Mode Theme */
+body.dark-mode {
+  --primary-color: #002244;       /* Dark Navy */
+  --accent-color: #003366;
+  --secondary-accent: #00509e;
+  --navbar-bg: rgba(0,34,68,0.95);
+  --light-bg: #001f3f;
+  --text-color: #e9eff7;
+  --glass-bg: rgba(255, 255, 255, 0.2);
+  --gradient-bg: linear-gradient(135deg, #001f3f 0%, #002244 100%);
+  --cta-gradient: linear-gradient(135deg, #003366 0%, #00509e 100%);
+}
+
+/* Global Resets and Box-Sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Body Styling */
+body {
+  background: var(--light-bg);
+  padding-top: 70px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+  transition: background var(--transition-speed), color var(--transition-speed);
+}
+
+/* Navigation Bar */
+.navbar {
+  background-color: var(--navbar-bg);
+  backdrop-filter: blur(8px);
+  border-bottom: 2px solid var(--accent-color);
+  transition: background-color var(--transition-speed);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.navbar .nav-link {
+  color: var(--text-color) !important;
+  transition: color var(--transition-speed);
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: var(--accent-color) !important;
+}
+
+/* Hero Section with Neural Network Canvas Background */
+.hero-section {
+  position: relative;
+  height: 80vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Canvas covering the hero section */
+.hero-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: #000; /* Fallback background */
+}
+
+/* Hero Overlay Content */
+.hero-overlay {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: var(--primary-color);
+  animation: fadeInUp 1s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-overlay h1 {
+  font-size: 4.5rem;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+
+.hero-overlay p {
+  font-size: 1.6rem;
+  margin-bottom: 30px;
+}
+
+/* Accent Button with 3D Hover Effect */
+.btn-accent {
+  background-color: var(--accent-color);
+  border: none;
+  color: var(--primary-color);
+  font-weight: bold;
+  padding: 12px 30px;
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+  transition: background var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.btn-accent:hover {
+  background: var(--secondary-accent);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(255, 64, 129, 0.5);
+}
+
+/* About Section */
+.about-section {
+  background-color: var(--light-bg);
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.about-section h2 {
+  color: var(--accent-color);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.about-section p {
+  font-size: 1.1rem;
+  max-width: 800px;
+  margin: auto;
+  line-height: 1.8;
+}
+
+.about-img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--border-radius);
+}
+
+/* Statistics Section */
+.statistics {
+  background-color: var(--gradient-bg);
+  padding: 60px 20px;
+}
+
+.chart-container {
+  position: relative;
+  height: 40vh;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Features Section with Glassmorphism Cards */
+.features {
+  background-color: var(--gradient-bg);
+  padding: 60px 20px;
+}
+
+.features .card {
+  background: var(--glass-bg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--box-shadow-light);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  border-radius: var(--border-radius);
+  padding: 20px;
+  text-align: center;
+}
+
+.features .card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--box-shadow-heavy);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  color: var(--accent-color);
+  margin-bottom: 15px;
+}
+
+/* Events Section */
+.events {
+  background-color: var(--light-bg);
+  padding: 60px 20px;
+}
+
+.events .card {
+  background: var(--glass-bg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
+  box-shadow: var(--box-shadow-light);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  border-radius: var(--border-radius);
+  padding: 20px;
+  text-align: center;
+}
+
+.events .card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--box-shadow-heavy);
+}
+
+/* Advices Section */
+.advices {
+  background-color: var(--gradient-bg);
+  padding: 60px 20px;
+}
+
+.advices .card {
+  background: var(--glass-bg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--box-shadow-light);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  border-radius: var(--border-radius);
+  padding: 20px;
+  text-align: center;
+}
+
+.advices .card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--box-shadow-heavy);
+}
+
+/* Testimonials Section */
+.testimonials {
+  background-color: var(--light-bg);
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.testimonials blockquote {
+  font-style: italic;
+  border-left: 4px solid var(--accent-color);
+  padding-left: 20px;
+  color: var(--text-color);
+  max-width: 800px;
+  margin: auto;
+  opacity: 0;
+  animation: fadeIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.testimonials .blockquote-footer {
+  color: var(--accent-color);
+  font-size: 0.9rem;
+}
+
+/* Call-to-Action Section */
+.cta-section {
+  background: var(--cta-gradient);
+  color: #ffffff;
+  padding: 60px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0,188,212,0.15), transparent 70%);
+  animation: pulse 6s infinite;
+  z-index: 0;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+}
+
+.cta-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-section h2,
+.cta-section p {
+  color: #ffffff;
+}
+
+/* Scroll to Top Button */
+#scrollTopBtn {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  display: none;
+  z-index: 999;
+  border: none;
+  outline: none;
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 50%;
+  font-size: 18px;
+  transition: background-color var(--transition-speed);
+}
+
+#scrollTopBtn:hover {
+  background-color: var(--secondary-accent);
+}
+
+/* Footer */
+.footer {
+  background: var(--gradient-bg);
+  color: var(--text-color);
+  padding: 20px;
+  margin-top: 50px;
+  text-align: center;
+  border-top: 1px solid var(--accent-color);
+  font-size: 0.9rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .hero-overlay h1 {
+    font-size: 3.5rem;
+  }
+  .hero-overlay p {
+    font-size: 1.3rem;
+  }
+  .about-section h2,
+  .testimonials blockquote {
+    font-size: 1.8rem;
+  }
+}

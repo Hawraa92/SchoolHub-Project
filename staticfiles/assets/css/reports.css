@@ -1,0 +1,128 @@
+/* static/assets/css/reports.css */
+
+/* Import a Google Font (Roboto) */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Global Body Styles with a gentle gradient background */
+body {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* Navbar Styling */
+.navbar {
+  font-family: 'Roboto', sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.navbar-toggler {
+  border: none;
+}
+
+/* Main Card (Container) Styling */
+.card {
+  border: none;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  transition: box-shadow 0.3s ease;
+}
+.card:hover {
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Headings */
+h2, h3, h4, h5 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+/* Table Styling */
+.table {
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+.table thead th {
+  background-color: #34495e;
+  color: #ecf0f1;
+  font-weight: 600;
+  padding: 12px 15px;
+  vertical-align: middle;
+  border: none;
+}
+.table tbody td {
+  background-color: #fff;
+  padding: 12px 15px;
+  vertical-align: middle;
+  border: none;
+}
+.table tbody tr {
+  transition: background-color 0.3s ease;
+}
+.table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+.table tbody tr td:first-child, .table thead th:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+.table tbody tr td:last-child, .table thead th:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Preformatted Text for Code/JSON Blocks */
+pre {
+  background-color: #ecf0f1;
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #2c3e50;
+  overflow-x: auto;
+  border: 1px solid #ccc;
+}
+
+/* Badge Styling */
+.badge {
+  font-size: 0.85rem;
+  padding: 0.5em 0.75em;
+  border-radius: 20px;
+}
+
+/* Button Styling */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+.btn:hover {
+  background-color: #007bff;
+}
+
+/* Dropdown Customization */
+.dropdown-menu a {
+  transition: background-color 0.2s ease, padding 0.2s ease;
+}
+.dropdown-menu a:hover {
+  background-color: #f8f9fa;
+  padding-left: 20px;
+}
+
+/* Chart Container */
+.chart-container {
+  position: relative;
+  height: 400px;
+  max-width: 100%;
+  margin: auto;
+}

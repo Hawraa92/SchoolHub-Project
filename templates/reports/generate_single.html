@@ -1,7 +1,6 @@
-<!-- templates/reports/generate_single.html -->
 {% extends "reports/base_reports.html" %}
 {% block reports_content %}
-<h3>Generate a Single Report for {{ student.full_name }}</h3>
+<h3>Generate Report for {{ student.full_name }}</h3>
 <form method="post">
   {% csrf_token %}
   <div class="form-group">

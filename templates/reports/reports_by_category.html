@@ -1,11 +1,7 @@
-<!-- templates/reports/reports_by_category.html -->
 {% extends "reports/base_reports.html" %}
 {% block reports_content %}
 <h3>Reports in Category: {{ category }}</h3>
-
-<!-- استبدل 'reports_list' بـ 'reports_home' -->
 <a href="{% url 'reports_home' %}" class="btn btn-secondary mb-3">View All Reports</a>
-
 <table class="table mt-3">
   <thead>
     <tr>

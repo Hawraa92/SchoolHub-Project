@@ -46,11 +46,11 @@ class Report(models.Model):
     def __str__(self):
         return f"Report for {self.student.full_name} - {self.get_category_display()}"
 
-# نموذج وهمي لإظهار رابط التقارير في لوحة الإدارة دون إنشاء جدول في قاعدة البيانات
+# Dummy model so that a dashboard link appears in Admin.
 class ReportsDashboard(models.Model):
     """
     Dummy model used to provide a link in Django Admin to the reports dashboard.
-    This model does not create a database table.
+    No database table is created.
     """
     class Meta:
         managed = False

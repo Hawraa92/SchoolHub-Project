@@ -5,12 +5,9 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 from faker import Faker
 import numpy as np
-import pandas as pd
-from sklearn.linear_model import Ridge
-from sklearn.preprocessing import StandardScaler
 
 class Command(BaseCommand):
-    help = "Generate highly accurate student data CSV with advanced predictive analysis, excluding fields computed automatically (student_id, age, academic performance)."
+    help = "Generate highly accurate student data CSV with multiple subjects and scores, excluding computed fields (student_id, age, academic performance)."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -25,23 +22,22 @@ class Command(BaseCommand):
         num_records = options['num']
         file_name = "advanced_student_data.csv"
 
-        # قائمة درجات الرؤية؛ لضمان عرضها كنص في Excel
+        # قائمة درجات الرؤية لضمان عرضها كنص في Excel
         EYE_VISION = ["6/6", "6/9", "6/12", "6/18", "6/24", "6/36", "6/60", "<6/60"]
 
-        # تعريف رؤوس الأعمدة النهائية بعد إزالة الحقول المحسوبة تلقائيًا:
-        # نستبعد "Student id", "Age" و"Academic performance"
+        # تعريف رؤوس الأعمدة النهائية بعد إزالة الحقول المحسوبة تلقائيًا (student_id, age, academic performance)
         headers = [
-            # PERSONAL INFORMATION (14 حقل بدون student_id و age)
+            # PERSONAL INFORMATION (14 حقل)
             "User", "Full name", "Date of birth", "Gender", "Nationality", "Marital status",
             "Address", "Profile image", "Email", "Mobile", "Spoken language",
             "Emergency contact name", "Emergency Contact", "Enrollment date",
             # GUARDIAN INFORMATION (9 حقل)
             "Guardian name", "Guardian relationship", "Guardian contact", "Guardian address", "Guardian job title",
             "Guardian chronic illnesses", "Guardian employment status", "Guardian monthly income", "Guardian education",
-            # ACADEMIC INFORMATION (5 حقل بدون academic performance)
+            # ACADEMIC INFORMATION (5 حقل)
             "Grade level", "Subjects", "Attendance percentage", "Awards", "Seat zone",
-            # GRADES (4 حقل)
-            "Subject", "Score", "Exam type", "Date recorded",
+            # GRADES: عمود واحد يحتوي على الدرجات لكل مادة
+            "Grades",
             # HEALTH INFORMATION (38 حقل)
             "Surgical history", "Has chronic illness", "Chronic illnesses type", "Allergies", "Vaccinations",
             "Eye conditions", "Left Eye Vision", "Right Eye Vision", "Dental Health", "Ear Health", "General health status",
@@ -66,20 +62,23 @@ class Command(BaseCommand):
         ]
 
         data_rows = []
-        # الميزات المتقدمة لتعلم الآلة:
-        # [sleep_hours, daily_study_hours, daily_gaming_hours, content_value, motivation_value, guardian_monthly_income, stability_value, attendance_percentage]
-        ml_features = []
-        ml_targets = []
+
+        # قائمة المواد الدراسية الممكنة
+        subjects_pool = [
+            "Mathematics", "Biology", "Family Education", "Religious Education",
+            "History", "Geography", "Art", "Music", "Theater", "English Language",
+            "Arabic Language", "German Language", "French Language", "Spanish Language",
+            "Civic Education", "Economics", "Literature", "Philosophy",
+            "Chemistry", "Physics", "Physical Education"
+        ]
 
         for _ in range(num_records):
             # ----------------------------
-            # PERSONAL INFORMATION (نتجاهل student_id وcomputed age)
+            # PERSONAL INFORMATION
             # ----------------------------
             user = fake.user_name()
             full_name = fake.name()
-            # student_id يُحسب داخلياً ولا يُدرج
             dob = fake.date_of_birth(minimum_age=16, maximum_age=18)
-            # computed_age يُحسب داخل النظام، لذا لا ندرجه
             gender = random.choice(["Male", "Female"])
             nationality = fake.country()
             marital_status = "Single"
@@ -101,51 +100,55 @@ class Command(BaseCommand):
             # GUARDIAN INFORMATION
             # ----------------------------
             guardian_name = fake.name()
-            guardian_relationship = random.choices(["Father", "Mother", "Sibling", "Other"], weights=[40, 40, 10, 10], k=1)[0]
+            guardian_relationship = random.choices(
+                ["Father", "Mother", "Sibling", "Other"], weights=[40, 40, 10, 10], k=1
+            )[0]
             guardian_contact = fake.phone_number()
             guardian_address = fake.address().replace("\n", ", ")
             guardian_job_title = fake.job()
-            guardian_chronic_illnesses = random.choice(["None", "Diabetes", "Hypertension", "Asthma", "Heart Disease"])
+            guardian_chronic_illnesses = random.choice(
+                ["None", "Diabetes", "Hypertension", "Asthma", "Heart Disease"]
+            )
             guardian_employment_status = random.choice(["Employed", "Unemployed", "Retired"])
             guardian_monthly_income = round(random.uniform(1000.0, 5000.0), 2)
-            guardian_education = random.choice(["Primary", "Secondary", "Bachelor's", "Master's", "PhD"])
+            guardian_education = random.choice(
+                ["Primary", "Secondary", "Bachelor's", "Master's", "PhD"]
+            )
             guardian_info = [
                 guardian_name, guardian_relationship, guardian_contact, guardian_address, guardian_job_title,
                 guardian_chronic_illnesses, guardian_employment_status, guardian_monthly_income, guardian_education
             ]
 
             # ----------------------------
-            # ACADEMIC INFORMATION (نتجاهل academic performance)
+            # ACADEMIC INFORMATION
             # ----------------------------
             grade_level = random.choice(["Grade 10", "Grade 11", "Grade 12"])
-            subjects_list = [
-                "Mathematics", "Biology", "Family Education", "Religious Education",
-                "History", "Geography", "Art", "Music", "Theater", "English Language",
-                "Arabic Language", "German Language", "French Language", "Spanish Language",
-                "Civic Education", "Economics", "Literature", "Philosophy",
-                "Chemistry", "Physics", "Physical Education"
-            ]
-            subjects = ", ".join(random.sample(subjects_list, k=random.randint(2, 4)))
+            # اختيار عدد عشوائي من المواد للطالب
+            num_subjects = random.randint(2, 5)
+            student_subjects = random.sample(subjects_pool, k=num_subjects)
+            subjects_str = ", ".join(student_subjects)
             attendance_percentage = round(random.uniform(75, 100), 2)
             awards = random.choice(["Honor Roll", "Excellence Award", "Outstanding Achievement", "None"])
             seat_zone = random.choice(["Front", "Middle", "Back", "Side"])
-            academic_info = [grade_level, subjects, attendance_percentage, awards, seat_zone]
+            academic_info = [grade_level, subjects_str, attendance_percentage, awards, seat_zone]
 
             # ----------------------------
-            # GRADES (4 حقل)
+            # GRADES: إنشاء درجات لكل مادة من المواد المختارة
             # ----------------------------
-            grade_subject = random.choice(subjects_list)
-            score_placeholder = 0  # ستُحدث لاحقاً بواسطة نموذج ML
-            exam_type = random.choice(["Midterm", "Final", "Quiz", "Assignment"])
-            date_recorded = fake.date_between(start_date='-1y', end_date='today')
-            grades_info = [grade_subject, score_placeholder, exam_type, date_recorded]
+            grades_list = []
+            for subject in student_subjects:
+                score = random.randint(0, 100)
+                grades_list.append(f"{subject}:{score}")
+            grades_str = "; ".join(grades_list)
 
             # ----------------------------
             # HEALTH INFORMATION (38 حقل)
             # ----------------------------
             surgical_history = random.choice(["None", "Appendectomy", "Gallbladder removal", "Other surgery"])
             has_chronic_illness = random.choice(["No", "Yes"])
-            chronic_illnesses_type = "None" if has_chronic_illness == "No" else random.choice(["Diabetes", "Hypertension", "Asthma", "Heart Disease"])
+            chronic_illnesses_type = (
+                "None" if has_chronic_illness == "No" else random.choice(["Diabetes", "Hypertension", "Asthma", "Heart Disease"])
+            )
             allergies = random.choice(["None", "Peanuts", "Shellfish", "Pollen", "Dust", "Other"])
             vaccinations = random.choice(["Up-to-date", "Missing some", "None"])
             eye_conditions = random.choice(["None", "Myopia", "Hyperopia", "Astigmatism", "Cataract", "Other"])
@@ -273,67 +276,10 @@ class Command(BaseCommand):
             ]
 
             # ----------------------------
-            # العوامل المتقدمة لتعلم الآلة
-            # (العوامل: ساعات النوم، ساعات الدراسة، ساعات الألعاب، قيمة المحتوى، قيمة الدافع، دخل الوصي، قيمة الاستقرار، نسبة الحضور)
+            # تجميع كل الأقسام في صف واحد
             # ----------------------------
-            sleep_hours = round(random.uniform(5, 9), 1)
-            # تحويل "motivation" إلى قيمة رقمية: Low=1, Medium=2, High=3
-            motivation_value = {"Low": 1, "Medium": 2, "High": 3}.get(motivation, 2)
-            # تحويل "content_type_watched" إلى قيمة رقمية
-            content_value = {"Educational": 1, "Entertainment": 0, "News": 0.5, "Mixed": 0.75, "None": 0}.get(content_type_watched, 0)
-            # تحويل "family_income_level" إلى قيمة رقمية تعبر عن الاستقرار: Low=1, Middle=2, High=3
-            stability_value = {"Low": 1, "Middle": 2, "High": 3}.get(family_income_level, 2)
-
-            advanced_feature = [
-                sleep_hours,
-                daily_study_hours,
-                daily_gaming_hours,
-                content_value,
-                motivation_value,
-                guardian_monthly_income,
-                stability_value,
-                attendance_percentage
-            ]
-
-            noise = np.random.normal(0, 2)
-            true_score = (50 +
-                          2 * (sleep_hours - 7) +
-                          5 * (daily_study_hours - 4) -
-                          3 * (daily_gaming_hours) +
-                          4 * content_value +
-                          2 * (motivation_value - 2) +
-                          0.005 * (guardian_monthly_income - 3000) +
-                          3 * (stability_value - 2) +
-                          0.5 * (attendance_percentage - 75) +
-                          noise)
-
-            ml_features.append(advanced_feature)
-            ml_targets.append(true_score)
-
-            # ----------------------------
-            # بناء الصف النهائي بترتيب الحقول
-            # ----------------------------
-            row = personal_info + guardian_info + academic_info + grades_info + health_info + economic_info + social_media_info
+            row = personal_info + guardian_info + academic_info + [grades_str] + health_info + economic_info + social_media_info
             data_rows.append(row)
-
-        # تحويل الميزات والأهداف إلى مصفوفات وتوحيدها
-        X = np.array(ml_features)
-        y = np.array(ml_targets)
-
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
-
-        # تدريب نموذج Ridge Regression لتوليد درجات دقيقة
-        model = Ridge(alpha=1.0)
-        model.fit(X_scaled, y)
-        predicted_scores = model.predict(X_scaled)
-
-        # تحديث حقل "Score" في كل صف
-        # حسب ترتيب الصف: personal_info (14) + guardian_info (9) + academic_info (5) = 28،
-        # ثم grades_info: "Subject", "Score", "Exam type", "Date recorded" => Score هو العنصر الثاني (فهرسه = 1)
-        # إذن موقع Score في الصف النهائي = 28 + 1 = 29
-        for i, row in enumerate(data_rows):
-            row[29] = round(predicted_scores[i], 2)
 
         # كتابة ملف CSV النهائي
         with open(file_name, 'w', newline='', encoding='utf-8') as csvfile:
@@ -342,5 +288,5 @@ class Command(BaseCommand):
             writer.writerows(data_rows)
 
         self.stdout.write(self.style.SUCCESS(
-            f"Successfully generated {num_records} student records with advanced ML predictions in '{file_name}'"
+            f"Successfully generated {num_records} student records with multiple subjects and scores in '{file_name}'"
         ))

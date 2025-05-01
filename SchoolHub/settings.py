@@ -162,7 +162,7 @@ JAZZMIN_SETTINGS = {
     "custom_js": ["assets/js/custom_admin.js"],
 }
 
-JJAZZMIN_UI_TWEAKS = {
+JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
     "footer_small_text": False,
     "body_small_text": False,

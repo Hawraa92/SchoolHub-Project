@@ -1,0 +1,52 @@
+{# templates/reports/student_levels.html #}
+{% extends "reports/base_reports.html" %}
+
+{% block reports_content %}
+<div class="dashboard-header">
+  <h2>Distribution of Student Performance Levels</h2>
+</div>
+<div class="chart-container">
+  <canvas id="levelsChart"></canvas>
+</div>
+
+<!-- Load Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Retrieve levels data passed from the view
+  var ctxLevels = document.getElementById('levelsChart').getContext('2d');
+  var levelsData = {{ levels_data|safe }};
+  var levelLabels = Object.keys(levelsData);
+  var levelCounts = Object.values(levelsData);
+  
+  // Create a Bar Chart to display student levels
+  new Chart(ctxLevels, {
+      type: 'bar',
+      data: {
+          labels: levelLabels,
+          datasets: [{
+              label: 'Number of Students',
+              data: levelCounts,
+              backgroundColor: [
+                  'rgba(75, 192, 192, 0.6)',
+                  'rgba(255, 206, 86, 0.6)',
+                  'rgba(153, 102, 255, 0.6)',
+                  'rgba(255, 99, 132, 0.6)',
+                  'rgba(54, 162, 235, 0.6)'
+              ]
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  ticks: {
+                      stepSize: 1
+                  }
+              }
+          }
+      }
+  });
+</script>
+{% endblock %}

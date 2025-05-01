@@ -1,22 +1,20 @@
 # reports/urls.py
-
 from django.urls import path
 from .views import (
-    reports_list,
-    view_report,
-    reports_by_category,
-    auto_generate_reports,
-    export_reports_pdf_view,
-    export_reports_csv_view,
-    generate_single_student_report,
-    import_reports_csv_view,
-    generate_report_dropdown,
+    reports_list,                      # Displays a list of all reports.
+    view_report,                       # Displays a single report's details.
+    reports_by_category,               # Filters reports by a given category.
+    auto_generate_reports,             # Auto-generates reports for all active students.
+    export_reports_pdf_view,           # Exports reports as a PDF document.
+    export_reports_csv_view,           # Exports reports as a CSV file.
+    generate_single_student_report,    # Generates a report for a single student.
+    import_reports_csv_view,           # Imports reports data from a CSV file.
+    generate_report_dropdown,          # Generates report from dropdown selections.
+    dashboard_view                     # Dashboard view with analytics and evaluation metrics.
 )
 
 urlpatterns = [
-    # استخدمنا name="reports_home" هنا
     path("", reports_list, name="reports_home"),
-
     path("view/<int:report_id>/", view_report, name="view_report"),
     path("category/<str:category>/", reports_by_category, name="reports_by_category"),
     path("generate/", auto_generate_reports, name="auto_generate_reports"),
@@ -25,4 +23,5 @@ urlpatterns = [
     path("generate/single/<int:student_id>/", generate_single_student_report, name="generate_single_student_report"),
     path("import/", import_reports_csv_view, name="import_reports_csv_view"),
     path("generate/dropdown/", generate_report_dropdown, name="generate_report_dropdown"),
+    path("dashboard/", dashboard_view, name="reports_dashboard"),
 ]
