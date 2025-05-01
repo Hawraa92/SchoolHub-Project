@@ -8,6 +8,8 @@ from pathlib import Path
 from decouple import config
 import os
 from django.contrib.messages import constants as messages
+import django_heroku
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -84,7 +86,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Baghdad'  # أو أي منطقة زمنية تريدها
+TIME_ZONE = 'Asia/Baghdad'  
 USE_I18N = True
 USE_TZ = True
 
@@ -92,6 +94,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+django_heroku.settings(locals())
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -99,7 +102,7 @@ STATICFILES_FINDERS = [
 ]
 
 # Media files (user uploaded content)
-MEDIA_URL = '/media/'  # تأكد من أن المسار يبدأ بـ /
+MEDIA_URL = '/media/'  
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Authentication URLs
@@ -112,8 +115,6 @@ MESSAGE_TAGS = {messages.ERROR: "danger"}
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# إعدادات django-fernet-fields لتشفير الحقول الحساسة
-# تأكد من إضافة FERNET_KEY في ملف .env الخاص بالمشروع
 FERNET_KEYS = [
     config('FERNET_KEY')
 ]
@@ -203,8 +204,6 @@ JAZZMIN_UI_TWEAKS = {
     "navbar_link_hover_color": "#ff3300"
 }
 
-# إعداد مهمة النسخ الاحتياطي اليومي باستخدام django-crontab
-# سيتم تشغيل أمر النسخ الاحتياطي (backup_students) يومياً عند الساعة 2 صباحاً
 CRONJOBS = [
     ('0 2 * * *', 'django.core.management.call_command', ['backup_students']),
 ]
