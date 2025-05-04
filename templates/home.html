@@ -4,28 +4,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SchoolHub - Particle Text Morph</title>
+  <title>SchoolHub – Home</title>
+
   <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- AOS Animation CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet" />
+  <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" 
+    rel="stylesheet"
+  />
+
+  <!-- AOS Animation Library CSS -->
+  <link 
+    href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" 
+    rel="stylesheet"
+  />
+
   <!-- Custom CSS -->
   <link rel="stylesheet" href="{% static 'assets/css/home.css' %}" />
+  <link rel="stylesheet" href="{% static 'assets/css/login.css' %}" />
+  <link rel="stylesheet" href="{% static 'assets/css/accounts.css' %}" />
+
   <!-- Chart.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" />
+  <link 
+    rel="stylesheet" 
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" 
+  />
 </head>
 <body>
   <!-- Navigation Bar with Dark Mode Toggle -->
-  <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNavbar" data-aos="fade-down">
+  <nav 
+    class="navbar navbar-expand-lg navbar-light fixed-top" 
+    id="mainNavbar" 
+    data-aos="fade-down"
+  >
     <div class="container">
       <a class="navbar-brand" href="#">SchoolHub</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button 
+        class="navbar-toggler" 
+        type="button" 
+        data-bs-toggle="collapse" 
+        data-bs-target="#navbarNav" 
+        aria-controls="navbarNav" 
+        aria-expanded="false" 
+        aria-label="Toggle navigation"
+      >
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <div 
+        class="collapse navbar-collapse justify-content-end" 
+        id="navbarNav"
+      >
         <ul class="navbar-nav me-3">
           <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
@@ -34,7 +64,10 @@
           <li class="nav-item"><a class="nav-link" href="#events">Events</a></li>
           <li class="nav-item"><a class="nav-link" href="#advices">Advices</a></li>
           <li class="nav-item"><a class="nav-link" href="#testimonials">Testimonials</a></li>
-          <li class="nav-item"><a class="nav-link" href="/admin/">Login</a></li>
+          <!-- Updated Login link -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+          </li>
         </ul>
         <button id="darkModeToggle" class="btn btn-outline-secondary btn-sm">
           <i class="bi bi-moon"></i>
@@ -43,29 +76,27 @@
     </div>
   </nav>
 
-  <!-- Optional Debug Output -->
-  <!-- <p>Student Count: {{ student_count }}</p>
-  <p>Teacher Count: {{ teacher_count }}</p>
-  <p>Course Count: {{ course_count }}</p> -->
-
-  <!-- Hero Section with Particle Text Morph Background -->
+  <!-- Hero Section with Particle/Text Morph Canvas -->
   <header id="hero-section" class="hero-section">
-    <!-- Canvas for particle text effect -->
     <canvas id="heroCanvas" class="hero-canvas"></canvas>
-    <!-- Overlay content -->
     <div class="hero-overlay text-center" data-aos="zoom-in">
       <h1 class="display-4">Welcome to SchoolHub</h1>
       <p class="lead">Empowering schools with knowledge and innovation.</p>
-      <a href="/admin/" class="btn btn-lg btn-accent">Login</a>
+      <!-- Updated Login button -->
+      <a href="{% url 'accounts:login' %}" class="btn btn-lg btn-accent">Login</a>
     </div>
   </header>
 
-  <!-- About Us Section with Books Image -->
+  <!-- About Us Section -->
   <section id="about" class="about-section py-5" data-aos="fade-right">
     <div class="container">
       <div class="row align-items-center">
         <div class="col-md-6" data-aos="fade-right">
-          <img src="{% static 'assets/images/books.png' %}" alt="Books" class="img-fluid about-img rounded" />
+          <img 
+            src="{% static 'assets/images/books.png' %}" 
+            alt="Books" 
+            class="img-fluid about-img rounded" 
+          />
         </div>
         <div class="col-md-6" data-aos="fade-left">
           <h2>About SchoolHub</h2>
@@ -81,13 +112,13 @@
   <section id="statistics" class="statistics py-5" data-aos="fade-up">
     <div class="container">
       <h2 class="text-center mb-4">Our Statistics</h2>
-      <div class="chart-container">
+      <div class="chart-container" style="position: relative; height: 40vh;">
         <canvas id="statsChart"></canvas>
       </div>
     </div>
   </section>
 
-  <!-- Features Section with Glassmorphism Cards -->
+  <!-- Features Section -->
   <section id="features" class="features py-5" data-aos="fade-up">
     <div class="container">
       <h2 class="text-center mb-4">Our Features</h2>
@@ -132,7 +163,7 @@
     </div>
   </section>
 
-  <!-- Events Section with Enhanced Hover Effects -->
+  <!-- Events Section -->
   <section id="events" class="events py-5" data-aos="fade-up">
     <div class="container">
       <h2 class="text-center mb-4">Featured Events</h2>
@@ -207,36 +238,57 @@
     </div>
   </section>
 
-  <!-- Testimonials Section with Carousel -->
+  <!-- Testimonials Section -->
   <section id="testimonials" class="testimonials py-5" data-aos="fade-up">
     <div class="container">
       <h2 class="text-center mb-4">Testimonials</h2>
-      <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="7000">
+      <div 
+        id="testimonialCarousel" 
+        class="carousel slide" 
+        data-bs-ride="carousel" 
+        data-bs-interval="7000"
+      >
         <div class="carousel-inner">
           <div class="carousel-item active">
             <blockquote class="blockquote text-center">
-              <p class="mb-4">"SchoolHub has transformed our school management system. Highly efficient and user-friendly!"</p>
+              <p class="mb-4">
+                "SchoolHub has transformed our school management system. Highly efficient and user-friendly!"
+              </p>
               <footer class="blockquote-footer">John Doe, Principal</footer>
             </blockquote>
           </div>
           <div class="carousel-item">
             <blockquote class="blockquote text-center">
-              <p class="mb-4">"The performance reports provide invaluable insights into our students' achievements."</p>
+              <p class="mb-4">
+                "The performance reports provide invaluable insights into our students' achievements."
+              </p>
               <footer class="blockquote-footer">Jane Smith, Teacher</footer>
             </blockquote>
           </div>
           <div class="carousel-item">
             <blockquote class="blockquote text-center">
-              <p class="mb-4">"Modern design and innovative features make SchoolHub a top choice."</p>
+              <p class="mb-4">
+                "Modern design and innovative features make SchoolHub a top choice."
+              </p>
               <footer class="blockquote-footer">Alex Johnson, Administrator</footer>
             </blockquote>
           </div>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+        <button 
+          class="carousel-control-prev" 
+          type="button" 
+          data-bs-target="#testimonialCarousel" 
+          data-bs-slide="prev"
+        >
           <span class="carousel-control-prev-icon" aria-hidden="true"></span>
           <span class="visually-hidden">Previous</span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+        <button 
+          class="carousel-control-next" 
+          type="button" 
+          data-bs-target="#testimonialCarousel" 
+          data-bs-slide="next"
+        >
           <span class="carousel-control-next-icon" aria-hidden="true"></span>
           <span class="visually-hidden">Next</span>
         </button>
@@ -249,7 +301,8 @@
     <div class="container text-center">
       <h2>Join Us Today</h2>
       <p>Experience the power of innovative school management with SchoolHub.</p>
-      <a href="/admin/" class="btn btn-lg btn-accent">Login Now</a>
+      <!-- Updated Login Now button -->
+      <a href="{% url 'accounts:login' %}" class="btn btn-lg btn-accent">Login Now</a>
     </div>
   </section>
 
@@ -270,47 +323,46 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- AOS Animation Library JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
   <script>
-    // Initialize AOS
+    // Initialize AOS animations
     AOS.init({
       duration: 800,
       easing: 'slide',
       once: true
     });
-    
+
     // Scroll to Top functionality
     const scrollTopBtn = document.getElementById("scrollTopBtn");
     window.onscroll = () => {
-      scrollTopBtn.style.display = (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) ? "block" : "none";
+      if (window.scrollY > 200) {
+        scrollTopBtn.style.display = "block";
+      } else {
+        scrollTopBtn.style.display = "none";
+      }
     };
-    scrollTopBtn.addEventListener("click", () => window.scrollTo({top: 0, behavior: 'smooth'}));
-    
-    // Statistics Chart using Chart.js with dynamic student, teacher, and course counts.
-    const studentCount = parseInt('{{ student_count|default:"0" }}', 10);
-    const teacherCount = parseInt('{{ teacher_count|default:"0" }}', 10);
-    const courseCount = parseInt('{{ course_count|default:"0" }}', 10);
-    
-    const ctxChart = document.getElementById('statsChart').getContext('2d');
-    new Chart(ctxChart, {
+    scrollTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Statistics Chart using Chart.js
+    const studentCount = parseInt("{{ student_count|default:'0' }}", 10);
+    const teacherCount = parseInt("{{ teacher_count|default:'0' }}", 10);
+    const courseCount  = parseInt("{{ course_count|default:'0' }}", 10);
+
+    const ctx = document.getElementById('statsChart').getContext('2d');
+    new Chart(ctx, {
       type: 'bar',
       data: {
         labels: ['Students', 'Teachers', 'Courses'],
         datasets: [{
           label: 'Numbers',
           data: [studentCount, teacherCount, courseCount],
-          backgroundColor: [
-            'rgba(0, 59, 102, 0.8)',
-            'rgba(0, 89, 150, 0.8)',
-            'rgba(0, 59, 102, 0.8)'
-          ]
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
+      options: { responsive: true, maintainAspectRatio: false }
     });
-    
+
     // Dark Mode Toggle
     const darkModeToggle = document.getElementById('darkModeToggle');
     darkModeToggle.addEventListener('click', () => {
@@ -319,109 +371,97 @@
       icon.classList.toggle('bi-moon');
       icon.classList.toggle('bi-sun');
     });
-    
-    // ===================================================
-    // CUSTOM ADVANCED PARTICLE TEXT MORPH (NEURAL NETWORK)
-    // ===================================================
+
+    // Particle Text Morph / Neural Network Canvas Animation
     const canvas = document.getElementById('heroCanvas');
     const ctxNeural = canvas.getContext('2d');
-    let canvasWidth = 0, canvasHeight = 0;
-    let mouse = { x: 0, y: 0 };
-    
-    function resizeCanvas() {
-      const heroSection = document.getElementById('hero-section');
-      canvasWidth = canvas.width = heroSection.offsetWidth;
-      canvasHeight = canvas.height = heroSection.offsetHeight;
-      mouse.x = canvasWidth / 2;
-      mouse.y = canvasHeight / 2;
+    let w, h;
+    const mouse = { x: 0, y: 0 };
+
+    function resize() {
+      const hero = document.getElementById('hero-section');
+      w = canvas.width = hero.offsetWidth;
+      h = canvas.height = hero.offsetHeight;
+      mouse.x = w / 2; 
+      mouse.y = h / 2;
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-    
+    window.addEventListener('resize', resize);
+    resize();
+
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
     });
-    
-    // Neural Node Class with interactive flash effect
-    class NeuralNode {
-      constructor() {
-        this.x = Math.random() * canvasWidth;
-        this.y = Math.random() * canvasHeight;
-        this.vx = (Math.random() - 0.5) * 1.2;
-        this.vy = (Math.random() - 0.5) * 1.2;
-        this.baseRadius = 3 + Math.random() * 3;
-        this.radius = this.baseRadius;
-        this.hue = Math.random() * 360;
+
+    class Node {
+      constructor(){
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.vx = (Math.random() - .5) * 1.2;
+        this.vy = (Math.random() - .5) * 1.2;
+        this.baseR = 3 + Math.random() * 3;
+        this.r = this.baseR;
+        this.hue = Math.random()*360;
         this.flash = 0;
       }
-      update() {
-        this.x += this.vx;
+      update(){
+        this.x += this.vx; 
         this.y += this.vy;
-        if (this.x < 0 || this.x > canvasWidth) this.vx *= -1;
-        if (this.y < 0 || this.y > canvasHeight) this.vy *= -1;
-        
-        let dx = this.x - mouse.x;
-        let dy = this.y - mouse.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < 80) {
-          this.flash = 1;
-          let angle = Math.atan2(dy, dx);
-          this.vx += Math.cos(angle) * 0.05;
-          this.vy += Math.sin(angle) * 0.05;
-        } else {
-          this.flash = Math.max(this.flash - 0.02, 0);
-        }
-        this.radius = this.baseRadius + this.flash * 5;
+        if(this.x<0||this.x>w) this.vx*=-1;
+        if(this.y<0||this.y>h) this.vy*=-1;
+        const dx = this.x - mouse.x, dy = this.y - mouse.y;
+        const dist = Math.hypot(dx,dy);
+        if(dist<80){
+          this.flash=1;
+          const ang = Math.atan2(dy,dx);
+          this.vx += Math.cos(ang)*.05;
+          this.vy += Math.sin(ang)*.05;
+        } else this.flash = Math.max(this.flash-.02,0);
+        this.r = this.baseR + this.flash*5;
       }
-      draw() {
+      draw(){
         ctxNeural.beginPath();
-        ctxNeural.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        let brightness = 60 + this.flash * 40;
-        ctxNeural.fillStyle = `hsl(${this.hue}, 80%, ${brightness}%)`;
-        ctxNeural.shadowColor = `hsl(${this.hue}, 80%, ${brightness}%)`;
+        ctxNeural.arc(this.x, this.y, this.r, 0, Math.PI*2);
+        const bright = 60 + this.flash*40;
+        ctxNeural.fillStyle = `hsl(${this.hue},80%,${bright}%)`;
+        ctxNeural.shadowColor = ctxNeural.fillStyle;
         ctxNeural.shadowBlur = 10;
         ctxNeural.fill();
       }
     }
-    
-    const nodes = [];
-    const NODE_COUNT = 120;
-    for (let i = 0; i < NODE_COUNT; i++) {
-      nodes.push(new NeuralNode());
-    }
-    
-    function drawConnections() {
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
+
+    const nodes = Array.from({length:120}, ()=> new Node());
+
+    function connect(){
+      for(let i=0;i<nodes.length;i++){
+        for(let j=i+1;j<nodes.length;j++){
           const dx = nodes[i].x - nodes[j].x;
           const dy = nodes[i].y - nodes[j].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 100) {
-            ctxNeural.strokeStyle = `rgba(255, 255, 255, ${1 - distance / 100})`;
-            ctxNeural.lineWidth = 0.5;
+          const d = Math.hypot(dx,dy);
+          if(d<100){
+            ctxNeural.strokeStyle = `rgba(255,255,255,${1-d/100})`;
+            ctxNeural.lineWidth = .5;
             ctxNeural.beginPath();
-            ctxNeural.moveTo(nodes[i].x, nodes[i].y);
-            ctxNeural.lineTo(nodes[j].x, nodes[j].y);
+            ctxNeural.moveTo(nodes[i].x,nodes[i].y);
+            ctxNeural.lineTo(nodes[j].x,nodes[j].y);
             ctxNeural.stroke();
           }
         }
       }
     }
-    
-    function animateNeural() {
-      ctxNeural.fillStyle = 'rgba(0, 0, 0, 0.1)';
-      ctxNeural.fillRect(0, 0, canvasWidth, canvasHeight);
-      
-      nodes.forEach(node => {
-        node.update();
-        node.draw();
+
+    function animate(){
+      ctxNeural.fillStyle = 'rgba(0,0,0,0.1)';
+      ctxNeural.fillRect(0,0,w,h);
+      nodes.forEach(n=>{
+        n.update();
+        n.draw();
       });
-      drawConnections();
-      requestAnimationFrame(animateNeural);
+      connect();
+      requestAnimationFrame(animate);
     }
-    animateNeural();
+    animate();
   </script>
 </body>
 </html>

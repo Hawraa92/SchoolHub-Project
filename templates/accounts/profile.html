@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Profile – SchoolHub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" 
+    rel="stylesheet"
+  />
+
+  <!-- Your custom styles -->
+  <link rel="stylesheet" href="{% static 'assets/css/accounts.css' %}">
+</head>
+<body class="bg-light">
+
+  <!-- navbar -->
+  <nav class="navbar navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'home' %}">SchoolHub</a>
+      <a class="btn btn-outline-secondary" href="{% url 'accounts:logout' %}">Logout</a>
+    </div>
+  </nav>
+
+  <!-- profile card -->
+  <div class="container my-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow-sm p-4 text-center">
+          {% if user.avatar %}
+            <img 
+              src="{{ user.avatar.url }}" 
+              class="rounded-circle mb-3" 
+              width="100" height="100" 
+              alt="Avatar"
+            >
+          {% else %}
+            <div class="avatar-placeholder rounded-circle bg-secondary mb-3"
+                 style="width:100px;height:100px;line-height:100px;color:white;">
+              {{ user.username|first|upper }}
+            </div>
+          {% endif %}
+
+          <h3>Welcome, {{ user.username|default:user.email }}!</h3>
+          <p class="text-muted">{{ user.email }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script 
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+  ></script>
+</body>
+</html>

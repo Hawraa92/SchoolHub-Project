@@ -54,9 +54,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Define the path to the cleaned CSV file
 <<<<<<< HEAD
-        csv_path = r"C:\Users\Hawraa\Desktop\school_management_system\students\cleaned_student_data.csv"
+        csv_path = r"C:\Users\Hawraa\laptop\school_management_system\students\cleaned_student_data.csv"
 =======
-        csv_path = r"C:\Users\laptop\Desktop\school_management_system\students\cleaned_student_data.csv"
+        csv_path = r"C:\Users\laptop\laptop\school_management_system\students\cleaned_student_data.csv"
 
 >>>>>>> 3fc5ec8b7b89c971293bb2d9cc3f9ccc9cef658e
         if not os.path.exists(csv_path):

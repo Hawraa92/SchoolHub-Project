@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from accounts.models import User
+from .models import User
 
+@admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ('email', 'username', 'display_avatar', 'is_staff', 'is_active')
     search_fields = ('email', 'username')
@@ -9,11 +10,16 @@ class UserAdmin(admin.ModelAdmin):
     ordering = ('email',)
 
     def display_avatar(self, obj):
-        """عرض صورة المستخدم في لوحة تحكم Django."""
+        """Display the user's avatar as a circular thumbnail."""
         if obj.avatar:
-            return format_html('<img src="{}" width="40" height="40" style="border-radius:50%;" />', obj.avatar.url)
-        return "No Avatar"
-
+            return format_html(
+                '<img src="{}" width="40" height="40" style="border-radius:50%;" />',
+                obj.avatar.url
+            )
+        # Fallback to default avatar if none uploaded
+        default_url = '/static/avatars/default.png'
+        return format_html(
+            '<img src="{}" width="40" height="40" style="border-radius:50%;" />',
+            default_url
+        )
     display_avatar.short_description = "Avatar"
-
-admin.site.register(User, UserAdmin)

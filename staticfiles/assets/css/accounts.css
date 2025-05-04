@@ -1,0 +1,107 @@
+/* Container for all account-related pages */
+.account-container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 30px;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Headings */
+  .account-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333333;
+    font-size: 1.8em;
+  }
+  
+  /* Form fields */
+  .account-container label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    color: #555555;
+    font-size: 0.9em;
+  }
+  
+  .account-container input[type="text"],
+  .account-container input[type="email"],
+  .account-container input[type="password"],
+  .account-container input[type="file"],
+  .account-container select,
+  .account-container textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.95em;
+  }
+  
+  .account-container input:focus,
+  .account-container select:focus,
+  .account-container textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0,123,255,0.3);
+  }
+  
+  /* Buttons */
+  .account-container button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 18px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  
+  .account-container button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Error messages */
+  .account-container .errorlist,
+  .account-container .error {
+    color: #d9534f;
+    font-size: 0.9em;
+    margin-top: 4px;
+  }
+  
+  /* Success/info messages */
+  .account-container .success,
+  .account-container .info {
+    color: #28a745;
+    font-size: 0.95em;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  
+  /* Avatar preview */
+  .account-container .avatar-preview {
+    display: block;
+    margin: 10px auto 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #dddddd;
+  }
+  
+  /* Link styling */
+  .account-container a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9em;
+  }
+  
+  .account-container a:hover {
+    text-decoration: underline;
+  }
+  

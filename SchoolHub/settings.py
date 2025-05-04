@@ -8,7 +8,6 @@ from pathlib import Path
 from decouple import config
 import os
 from django.contrib.messages import constants as messages
-import django_heroku
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,11 +19,13 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']  
+ALLOWED_HOSTS = ['*']
+
 # Application definition
 INSTALLED_APPS = [
+    'widget_tweaks',
     'jazzmin',
-    'django_crontab', 
+    'django_crontab',
     'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,7 +41,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -70,14 +71,15 @@ WSGI_APPLICATION = 'SchoolHub.wsgi.application'
 
 # Database
 DATABASES = {
-    'default': dj_database_url.config(default=config('DATABASE_URL'))
-
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=False
+    )
 }
 
-# Tell Django to use your custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -85,19 +87,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Baghdad'  
+TIME_ZONE = 'Asia/Baghdad'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-django_heroku.settings(locals())
-
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -105,26 +104,28 @@ STATICFILES_FINDERS = [
 ]
 WHITENOISE_USE_FINDERS = True
 
-
-# Media files (user uploaded content)
-MEDIA_URL = '/media/'  
+# Media files (user-uploaded)
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
 # Authentication URLs
-LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL            = 'accounts:login'      
+LOGIN_REDIRECT_URL = '/home/'
+LOGOUT_REDIRECT_URL  = 'accounts:login'      
 
-MESSAGE_TAGS = {messages.ERROR: "danger"}
+# Messages
+MESSAGE_TAGS = {
+    messages.ERROR: "danger"
+}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Fernet keys for any encryption tasks
 FERNET_KEYS = [
     config('FERNET_KEY')
 ]
 
-# Jazzmin Settings
+# Jazzmin (Django admin theme) configuration
 JAZZMIN_SETTINGS = {
     "site_title": "SchoolHub Admin",
     "site_header": "SchoolHub Admin",
@@ -152,11 +153,15 @@ JAZZMIN_SETTINGS = {
     },
     "show_ui_builder": True,
     "topmenu_links": [
-        {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"model": "auth.user"},
-        {"app": "students"},
-        {"app": "teachers"},
-    ],
+    {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+    {"model": "auth.user"},
+    {"app": "students"},
+    {"app": "teachers"},
+
+    # 👇 الزر الجديد لتنبؤات الذكاء الاصطناعي
+    {"name": "Predictions", "url": "/predictor/dashboard/", "new_window": False},
+],
+
     "custom_css": ["assets/css/custom_admin.css"],
     "custom_js": ["assets/js/custom_admin.js"],
 }
@@ -214,3 +219,12 @@ CRONJOBS = [
 ]
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1_000_000
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'hawra92925@gmail.com'
+EMAIL_HOST_PASSWORD = 'glryqggmuwusmgfh'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+NOTIFY_EMAIL = EMAIL_HOST_USER

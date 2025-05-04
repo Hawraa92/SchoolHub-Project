@@ -5,7 +5,6 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from students.models import Student
 
-# تحميل النموذج من المسار
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'predictor', 'ml_models', 'student_performance_model.pkl')
 model = joblib.load(MODEL_PATH)
 
@@ -16,7 +15,6 @@ def performance_dashboard(request):
     results = []
 
     for student in students:
-        # الوصول إلى الكائنات المرتبطة إذا كانت موجودة
         economic = getattr(student, 'economic_situation', None)
         health = getattr(student, 'health_information', None)
         tech = getattr(student, 'tech_and_social', None)
@@ -51,7 +49,7 @@ def performance_dashboard(request):
             1 if tech and tech.content_type_watched == "News" else 0
         ]
 
-        # التنبؤ
+        # prediction
         pred_label_encoded = model.predict([features])[0]
         categories = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
         pred_label = categories[pred_label_encoded]

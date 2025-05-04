@@ -46,7 +46,10 @@ class Report(models.Model):
     def __str__(self):
         return f"Report for {self.student.full_name} - {self.get_category_display()}"
 
-# Dummy model so that a dashboard link appears in Admin.
+    class Meta:
+        ordering = ['-generated_at']  # Display latest reports first
+
+
 class ReportsDashboard(models.Model):
     """
     Dummy model used to provide a link in Django Admin to the reports dashboard.

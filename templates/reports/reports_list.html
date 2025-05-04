@@ -3,20 +3,8 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h2 class="mb-0">All Reports</h2>
   <div class="btn-group">
-    <a href="{% url 'export_reports_pdf_view' %}" class="btn btn-danger btn-sm">
-      <i class="fas fa-file-pdf"></i> Export PDF
-    </a>
-    <a href="{% url 'export_reports_csv_view' %}" class="btn btn-warning btn-sm">
-      <i class="fas fa-file-csv"></i> Export CSV
-    </a>
     <a href="{% url 'auto_generate_reports' %}" class="btn btn-primary btn-sm">
       <i class="fas fa-bolt"></i> Auto Generate Reports
-    </a>
-    <a href="{% url 'generate_report_dropdown' %}" class="btn btn-success btn-sm">
-      <i class="fas fa-user-plus"></i> Generate by Student
-    </a>
-    <a href="{% url 'import_reports_csv_view' %}" class="btn btn-secondary btn-sm">
-      <i class="fas fa-upload"></i> Import CSV
     </a>
   </div>
 </div>

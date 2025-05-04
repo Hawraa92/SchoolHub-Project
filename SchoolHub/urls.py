@@ -18,23 +18,34 @@ Including another URLconf
 URL configuration for the SchoolHub project.
 """
 
+
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+
+# Your site-wide home view
 from .views import home
 
 urlpatterns = [
+    # Admin site (only staff users should ever use this)
     path('admin/', admin.site.urls),
-    path('', home, name='home'),  # Root URL now uses the updated home view
-    path('students/', include('students.urls')),
+
+    # Public home page
+    path('', home, name='home'),
+
+    # Accounts: login / logout / register / profile
     path('accounts/', include('accounts.urls')),
+
+    # App modules
+    path('students/', include('students.urls')),
     path('teachers/', include('teachers.urls')),
     path('reports/', include('reports.urls')),
     path('predictor/', include('predictor.urls')),
-
 ]
 
+# Serve static & media files in DEBUG mode
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,16 +1,15 @@
-{# templates/reports/dashboard.html #}
 {% extends "reports/base_reports.html" %}
 
 {% block reports_content %}
-<div class="dashboard-header text-center">
+<div class="dashboard-header text-center mb-4">
   <h2>Advanced Dashboard Overview</h2>
   <p><strong>Total Reports:</strong> {{ total_reports }}</p>
 </div>
 
 <!-- Filtering Section -->
-<div class="mb-4">
+<div class="mb-4 text-center">
   <label for="timeFilter" class="form-label">Select Time Period:</label>
-  <select id="timeFilter" class="form-select" onchange="filterDataByTime()">
+  <select id="timeFilter" class="form-select w-auto d-inline-block" onchange="filterDataByTime()">
     <option value="all">All Time</option>
     <option value="2023">2023</option>
     <option value="2022">2022</option>
@@ -18,262 +17,160 @@
   </select>
 </div>
 
-<div class="row">
-  <div class="col-lg-6 col-md-12 mb-4">
-    <h4 class="text-center">Reports by Category</h4>
-    <div class="chart-container">
-      <canvas id="categoryChart"></canvas>
+<!-- Charts Section -->
+<div class="row justify-content-center">
+  <div class="col-lg-5 col-md-10 mb-4">
+    <div class="card p-3 shadow-sm">
+      <h5 class="text-center">Reports by Category</h5>
+      <div class="chart-wrapper">
+        <canvas id="categoryChart"></canvas>
+      </div>
     </div>
   </div>
-  <div class="col-lg-6 col-md-12 mb-4">
-    <h4 class="text-center">Reports by Status</h4>
-    <div class="chart-container">
-      <canvas id="statusChart"></canvas>
+  <div class="col-lg-5 col-md-10 mb-4">
+    <div class="card p-3 shadow-sm">
+      <h5 class="text-center">Reports by Status</h5>
+      <div class="chart-wrapper">
+        <canvas id="statusChart"></canvas>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="mt-4">
-  <h4 class="text-center">Evaluation Metrics</h4>
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered">
-      <thead class="table-dark">
-        <tr>
-          <th>Metric</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Accuracy</td>
-          <td id="accuracyValue">{{ evaluation_metrics.accuracy }}</td>
-        </tr>
-        <tr>
-          <td>Precision</td>
-          <td id="precisionValue">{{ evaluation_metrics.precision }}</td>
-        </tr>
-        <tr>
-          <td>Recall</td>
-          <td id="recallValue">{{ evaluation_metrics.recall }}</td>
-        </tr>
-        <tr>
-          <td>F1 Score</td>
-          <td id="f1Value">{{ evaluation_metrics.f1 }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <h5 class="text-center">Confusion Matrix</h5>
-  <pre id="confusionMatrix" class="bg-light p-3 rounded text-center">{{ evaluation_metrics.confusion_matrix }}</pre>
-</div>
-
-<div class="mt-4">
-  <h4 class="text-center">Student Performance Levels Distribution</h4>
-  <div class="chart-container">
-    <canvas id="levelsChart"></canvas>
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-12 mb-4">
+    <div class="card p-3 shadow-sm">
+      <h5 class="text-center">Student Performance Levels Distribution</h5>
+      <div class="chart-wrapper" style="height: 350px;">
+        <canvas id="levelsChart"></canvas>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Load Chart.js and Chart DataLabels Plugin from CDN -->
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 <script>
-  // Global chart settings for a modern look
   Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
   Chart.defaults.font.size = 14;
   Chart.defaults.color = '#333';
 
-  /********************
-   * Category Chart
-   ********************/
-  var ctxCat = document.getElementById('categoryChart').getContext('2d');
-  // Create a vertical gradient for the pie chart
-  var gradientCat = ctxCat.createLinearGradient(0, 0, 0, 400);
-  gradientCat.addColorStop(0, 'rgba(102, 187, 106, 0.9)'); // Rich green
+  const categoryData = {{ category_data|safe }};
+  const statusData = {{ status_data|safe }};
+  const levelsData = {{ levels_data|safe }};
+
+  // Category Chart
+  const ctxCat = document.getElementById('categoryChart').getContext('2d');
+  const gradientCat = ctxCat.createLinearGradient(0, 0, 0, 400);
+  gradientCat.addColorStop(0, 'rgba(102, 187, 106, 0.9)');
   gradientCat.addColorStop(1, 'rgba(102, 187, 106, 0.5)');
-
-  var categoryData = {{ category_data|safe }};
-  var categoryLabels = Object.keys(categoryData);
-  var categoryCounts = Object.values(categoryData);
-
-  var categoryChart = new Chart(ctxCat, {
-      type: 'pie',
-      data: {
-          labels: categoryLabels,
-          datasets: [{
-              label: 'Reports by Category',
-              data: categoryCounts,
-              backgroundColor: [
-                  gradientCat,
-                  'rgba(66, 165, 245, 0.9)',  // Blue
-                  'rgba(255, 202, 40, 0.9)',   // Yellow
-                  'rgba(239, 83, 80, 0.9)'     // Red
-              ]
-          }]
-      },
-      options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-              legend: { position: 'bottom' },
-              tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
-              datalabels: {
-                  color: '#fff',
-                  formatter: function(value) {
-                      return value;
-                  }
-              }
-          },
-          animation: {
-              duration: 2000,
-              easing: 'easeOutBounce'
-          }
-      },
-      plugins: [ChartDataLabels]
+  new Chart(ctxCat, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(categoryData),
+      datasets: [{
+        data: Object.values(categoryData),
+        backgroundColor: [
+          gradientCat,
+          'rgba(66, 165, 245, 0.9)',
+          'rgba(255, 202, 40, 0.9)',
+          'rgba(239, 83, 80, 0.9)'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
+        datalabels: { color: '#fff', formatter: v => v }
+      }
+    },
+    plugins: [ChartDataLabels]
   });
 
-  /********************
-   * Status Chart
-   ********************/
-  var ctxStatus = document.getElementById('statusChart').getContext('2d');
-  // Create a vertical gradient for the doughnut chart
-  var gradientStatus = ctxStatus.createLinearGradient(0, 0, 0, 400);
-  gradientStatus.addColorStop(0, 'rgba(255, 112, 67, 0.9)'); // Deep orange
+  // Status Chart
+  const ctxStatus = document.getElementById('statusChart').getContext('2d');
+  const gradientStatus = ctxStatus.createLinearGradient(0, 0, 0, 400);
+  gradientStatus.addColorStop(0, 'rgba(255, 112, 67, 0.9)');
   gradientStatus.addColorStop(1, 'rgba(255, 112, 67, 0.5)');
-
-  var statusData = {{ status_data|safe }};
-  var statusLabels = Object.keys(statusData);
-  var statusCounts = Object.values(statusData);
-
-  var statusChart = new Chart(ctxStatus, {
-      type: 'doughnut',
-      data: {
-          labels: statusLabels,
-          datasets: [{
-              label: 'Reports by Status',
-              data: statusCounts,
-              backgroundColor: [
-                  gradientStatus,
-                  'rgba(123, 31, 162, 0.9)',   // Purple
-                  'rgba(38, 198, 218, 0.9)'    // Cyan
-              ]
-          }]
-      },
-      options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-              legend: { position: 'bottom' },
-              tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
-              datalabels: {
-                  color: '#fff',
-                  formatter: function(value) { return value; }
-              }
-          },
-          animation: {
-              duration: 1800,
-              easing: 'easeInOutQuart'
-          }
-      },
-      plugins: [ChartDataLabels]
+  new Chart(ctxStatus, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(statusData),
+      datasets: [{
+        data: Object.values(statusData),
+        backgroundColor: [
+          gradientStatus,
+          'rgba(123, 31, 162, 0.9)',
+          'rgba(38, 198, 218, 0.9)'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
+        datalabels: { color: '#fff', formatter: v => v }
+      }
+    },
+    plugins: [ChartDataLabels]
   });
 
-  /*******************************
-   * Levels (Student Performance) Chart
-   *******************************/
-  var ctxLevels = document.getElementById('levelsChart').getContext('2d');
-  var levelsData = {{ levels_data|safe }};
-  var levelLabels = Object.keys(levelsData);
-  var levelCounts = Object.values(levelsData);
-
-  // Create a gradient for the levels bars
-  var gradientLevels = ctxLevels.createLinearGradient(0, 0, 0, 400);
-  gradientLevels.addColorStop(0, 'rgba(255, 159, 64, 0.9)');  // Vivid orange
-  gradientLevels.addColorStop(1, 'rgba(255, 99, 132, 0.7)');   // Soft red/pink
-
-  var levelsChart = new Chart(ctxLevels, {
-      type: 'bar',
-      data: {
-          labels: levelLabels,
-          datasets: [{
-              label: 'Number of Students',
-              data: levelCounts,
-              backgroundColor: gradientLevels,
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1
-          }]
+  // Levels Chart
+  const ctxLevels = document.getElementById('levelsChart').getContext('2d');
+  const gradientLevels = ctxLevels.createLinearGradient(0, 0, 0, 400);
+  gradientLevels.addColorStop(0, 'rgba(255, 159, 64, 0.9)');
+  gradientLevels.addColorStop(1, 'rgba(255, 99, 132, 0.7)');
+  new Chart(ctxLevels, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(levelsData),
+      datasets: [{
+        data: Object.values(levelsData),
+        backgroundColor: gradientLevels,
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true },
+        x: { grid: { display: false } }
       },
-      options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-              y: {
-                  beginAtZero: true,
-                  ticks: { stepSize: 1 },
-                  grid: { color: 'rgba(200,200,200,0.2)' }
-              },
-              x: { grid: { display: false } }
-          },
-          plugins: {
-              legend: { display: false },
-              tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
-              datalabels: {
-                  color: '#fff',
-                  font: { weight: 'bold' },
-                  formatter: function(value) { return value; }
-              }
-          },
-          animation: {
-              duration: 1500,
-              easing: 'easeOutElastic'
-          },
-          onClick: function(evt, activeElements) {
-              if (activeElements.length > 0) {
-                  var index = activeElements[0].index;
-                  var selectedLevel = levelLabels[index];
-                  // Example action: redirect to a details page for the selected level.
-                  // window.location.href = '/reports/student-levels-details/?level=' + selectedLevel;
-              }
-          }
-      },
-      plugins: [ChartDataLabels]
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
+        datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: v => v }
+      }
+    },
+    plugins: [ChartDataLabels]
   });
 
-  /*******************************
-   * Filtering Function (Optional)
-   *******************************/
+  // Filter by Time
   function filterDataByTime() {
-      var selectedPeriod = document.getElementById("timeFilter").value;
-      
-      // Example AJAX call: This is a pseudo-code; ensure your backend view supports filtering.
-      fetch('/reports/dashboard/?period=' + selectedPeriod)
-          .then(response => response.json())
-          .then(data => {
-              // Update Category Chart
-              categoryChart.data.labels = Object.keys(data.category_data);
-              categoryChart.data.datasets[0].data = Object.values(data.category_data);
-              categoryChart.update();
-              
-              // Update Status Chart
-              statusChart.data.labels = Object.keys(data.status_data);
-              statusChart.data.datasets[0].data = Object.values(data.status_data);
-              statusChart.update();
-              
-              // Update Evaluation Metrics
-              document.getElementById("accuracyValue").innerHTML = data.evaluation_metrics.accuracy;
-              document.getElementById("precisionValue").innerHTML = data.evaluation_metrics.precision;
-              document.getElementById("recallValue").innerHTML = data.evaluation_metrics.recall;
-              document.getElementById("f1Value").innerHTML = data.evaluation_metrics.f1;
-              document.getElementById("confusionMatrix").innerHTML = JSON.stringify(data.evaluation_metrics.confusion_matrix);
-              
-              // Update Levels Chart if available
-              if(data.levels_data) {
-                  levelsChart.data.labels = Object.keys(data.levels_data);
-                  levelsChart.data.datasets[0].data = Object.values(data.levels_data);
-                  levelsChart.update();
-              }
-          });
+    const selectedPeriod = document.getElementById("timeFilter").value;
+    fetch('/reports/dashboard/?period=' + selectedPeriod)
+      .then(response => response.json())
+      .then(data => {
+        categoryChart.data.labels = Object.keys(data.category_data);
+        categoryChart.data.datasets[0].data = Object.values(data.category_data);
+        categoryChart.update();
+
+        statusChart.data.labels = Object.keys(data.status_data);
+        statusChart.data.datasets[0].data = Object.values(data.status_data);
+        statusChart.update();
+
+        if (data.levels_data) {
+          levelsChart.data.labels = Object.keys(data.levels_data);
+          levelsChart.data.datasets[0].data = Object.values(data.levels_data);
+          levelsChart.update();
+        }
+      });
   }
 </script>
 {% endblock %}
