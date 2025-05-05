@@ -158,7 +158,6 @@ JAZZMIN_SETTINGS = {
     {"app": "students"},
     {"app": "teachers"},
 
-    # 👇 الزر الجديد لتنبؤات الذكاء الاصطناعي
     {"name": "Predictions", "url": "/predictor/dashboard/", "new_window": False},
 ],
 
@@ -220,11 +219,13 @@ CRONJOBS = [
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1_000_000
 
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'hawra92925@gmail.com'
-EMAIL_HOST_PASSWORD = 'glryqggmuwusmgfh'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 NOTIFY_EMAIL = EMAIL_HOST_USER
+
