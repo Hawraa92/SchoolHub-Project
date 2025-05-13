@@ -39,23 +39,6 @@ def reports_by_category(request, category):
     return render(request, "reports/reports_by_category.html", {"reports": reports, "category": category_display})
 
 
-def auto_generate_reports(request):
-    """
-    Automatically generate reports for all active students based on a selected category.
-    """
-    if request.method == "POST":
-        selected_category = request.POST.get("report_category")
-        students = Student.objects.filter(is_active=True)
-        generated_count = 0
-        for student in students:
-            builder = ReportBuilder(student, selected_category)
-            builder.build()
-            generated_count += 1
-        message = f"{generated_count} reports generated for category '{selected_category}'."
-        return render(request, "reports/auto_generate_reports.html", {"message": message})
-    return render(request, "reports/auto_generate_reports.html")
-
-
 def export_reports_pdf_view(request):
     """
     Exports all reports as a PDF document.
@@ -192,29 +175,18 @@ def dashboard_view(request):
     Dashboard view to aggregate and display analytics for reports and evaluation metrics.
     Limits data processed to reduce memory usage on low-RAM environments.
     """
-    MAX_REPORTS  = 200
-    MAX_STUDENTS = 200
-
-    # Limit reports
-    reports_qs = Report.objects.all()[:MAX_REPORTS]
-    total_reports = reports_qs.count()
-
-    category_counts = reports_qs.values('category').annotate(count=Count('id'))
-    category_data = {
-        dict(ReportCategory.choices)[e['category']]: e['count']
-        for e in category_counts
-    }
-
-    status_counts = reports_qs.values('status').annotate(count=Count('id'))
+    # Aggregations over all reports
+    total_reports = Report.objects.count()
+    category_counts = Report.objects.values('category').annotate(count=Count('id'))
+    category_data = { dict(ReportCategory.choices)[e['category']]: e['count'] for e in category_counts }
+    status_counts = Report.objects.values('status').annotate(count=Count('id'))
     status_data = { e['status']: e['count'] for e in status_counts }
 
-    # Limit students
+    # Limit student dataset for performance
+    MAX_STUDENTS = 200
     students_qs = Student.objects.all()[:MAX_STUDENTS]
     level_counts = students_qs.values('academic_performance').annotate(count=Count('id'))
-    levels_data = {
-        (e['academic_performance'] or "Not Specified"): e['count']
-        for e in level_counts
-    }
+    levels_data = { (e['academic_performance'] or "Not Specified"): e['count'] for e in level_counts }
 
     # Dummy evaluation data (replace with real y_true, y_pred lists)
     y_true = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]
@@ -223,9 +195,9 @@ def dashboard_view(request):
 
     context = {
         'total_reports': total_reports,
-        'category_data': json.dumps(category_data),
-        'status_data':   json.dumps(status_data),
+        'category_data': category_data,
+        'status_data':   status_data,
         'evaluation_metrics': evaluation_metrics,
-        'levels_data':   json.dumps(levels_data),
+        'levels_data':   levels_data,
     }
     return render(request, 'reports/dashboard.html', context)
