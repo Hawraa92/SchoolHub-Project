@@ -95,7 +95,6 @@ def performance_dashboard(request):
 
     categories = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
 
-    # 5) جمع النتائج المرتبطة بكل طالب في الصفحة
     results = []
     for student, code in zip(page_obj, preds_encoded):
         label = categories[code] if code is not None and 0 <= code < len(categories) else "Error"
