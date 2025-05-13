@@ -47,46 +47,38 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-<!-- Scripts -->
+{% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-
 <script>
   Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-  Chart.defaults.font.size = 14;
-  Chart.defaults.color = '#333';
+  Chart.defaults.font.size   = 14;
+  Chart.defaults.color        = '#333';
 
+  // Parse data passed from context
   const categoryData = {{ category_data|safe }};
-  const statusData = {{ status_data|safe }};
-  const levelsData = {{ levels_data|safe }};
+  const statusData   = {{ status_data|safe }};
+  const levelsData   = {{ levels_data|safe }};
 
   // Category Chart
   const ctxCat = document.getElementById('categoryChart').getContext('2d');
   const gradientCat = ctxCat.createLinearGradient(0, 0, 0, 400);
   gradientCat.addColorStop(0, 'rgba(102, 187, 106, 0.9)');
   gradientCat.addColorStop(1, 'rgba(102, 187, 106, 0.5)');
-  new Chart(ctxCat, {
+  const categoryChart = new Chart(ctxCat, {
     type: 'pie',
     data: {
       labels: Object.keys(categoryData),
       datasets: [{
         data: Object.values(categoryData),
-        backgroundColor: [
-          gradientCat,
-          'rgba(66, 165, 245, 0.9)',
-          'rgba(255, 202, 40, 0.9)',
-          'rgba(239, 83, 80, 0.9)'
-        ]
+        backgroundColor: [gradientCat, 'rgba(66, 165, 245, 0.9)', 'rgba(255, 202, 40, 0.9)', 'rgba(239, 83, 80, 0.9)']
       }]
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { position: 'bottom' },
-        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
-        datalabels: { color: '#fff', formatter: v => v }
-      }
+      plugins: { legend: { position: 'bottom' }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' }, datalabels: { color: '#fff', formatter: v => v } }
     },
     plugins: [ChartDataLabels]
   });
@@ -96,26 +88,15 @@
   const gradientStatus = ctxStatus.createLinearGradient(0, 0, 0, 400);
   gradientStatus.addColorStop(0, 'rgba(255, 112, 67, 0.9)');
   gradientStatus.addColorStop(1, 'rgba(255, 112, 67, 0.5)');
-  new Chart(ctxStatus, {
+  const statusChart = new Chart(ctxStatus, {
     type: 'doughnut',
     data: {
       labels: Object.keys(statusData),
-      datasets: [{
-        data: Object.values(statusData),
-        backgroundColor: [
-          gradientStatus,
-          'rgba(123, 31, 162, 0.9)',
-          'rgba(38, 198, 218, 0.9)'
-        ]
-      }]
+      datasets: [{ data: Object.values(statusData), backgroundColor: [gradientStatus, 'rgba(123, 31, 162, 0.9)', 'rgba(38, 198, 218, 0.9)'] }]
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { position: 'bottom' },
-        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
-        datalabels: { color: '#fff', formatter: v => v }
-      }
+      plugins: { legend: { position: 'bottom' }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' }, datalabels: { color: '#fff', formatter: v => v } }
     },
     plugins: [ChartDataLabels]
   });
@@ -125,37 +106,25 @@
   const gradientLevels = ctxLevels.createLinearGradient(0, 0, 0, 400);
   gradientLevels.addColorStop(0, 'rgba(255, 159, 64, 0.9)');
   gradientLevels.addColorStop(1, 'rgba(255, 99, 132, 0.7)');
-  new Chart(ctxLevels, {
+  const levelsChart = new Chart(ctxLevels, {
     type: 'bar',
     data: {
       labels: Object.keys(levelsData),
-      datasets: [{
-        data: Object.values(levelsData),
-        backgroundColor: gradientLevels,
-        borderColor: 'rgba(255, 99, 132, 1)',
-        borderWidth: 1
-      }]
+      datasets: [{ data: Object.values(levelsData), backgroundColor: gradientLevels, borderColor: 'rgba(255, 99, 132, 1)', borderWidth: 1 }]
     },
     options: {
       responsive: true,
-      scales: {
-        y: { beginAtZero: true },
-        x: { grid: { display: false } }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' },
-        datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: v => v }
-      }
+      scales: { y: { beginAtZero: true }, x: { grid: { display: false } } },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' }, datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: v => v } }
     },
     plugins: [ChartDataLabels]
   });
 
-  // Filter by Time
+  // Filter by Time (requires JSON endpoint)
   function filterDataByTime() {
-    const selectedPeriod = document.getElementById("timeFilter").value;
-    fetch('/reports/dashboard/?period=' + selectedPeriod)
-      .then(response => response.json())
+    const period = document.getElementById('timeFilter').value;
+    fetch(`/reports/dashboard/?period=${period}`)
+      .then(res => res.json())
       .then(data => {
         categoryChart.data.labels = Object.keys(data.category_data);
         categoryChart.data.datasets[0].data = Object.values(data.category_data);
