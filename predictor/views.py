@@ -30,14 +30,12 @@ def performance_dashboard(request):
             "message": "The prediction model could not be loaded."
         })
 
-    # 1) جلب الطلاب مع حساب متوسط الدرجات في SQL وتهيئة العلاقات الجانبية
     qs = (
         Student.objects
         .select_related('economic_situation', 'health_information', 'tech_and_social')
         .annotate(avg_score=Avg('grades__score'))
     )
 
-    # 2) فلترة بناءً على كلمة البحث q (على الاسم الأول أو الأخير)
     q = request.GET.get('q', '').strip()
     if q:
         qs = qs.filter(
@@ -45,40 +43,36 @@ def performance_dashboard(request):
             Q(last_name__icontains=q)
         )
 
-    # 3) تقسيم النتائج إلى صفحات (20 طالب لكل صفحة)
-    paginator   = Paginator(qs, 20)
-    page_number = request.GET.get('page')
-    page_obj    = paginator.get_page(page_number)
-
-    # 4) بناء مصفوفة الميزات للطلاب في الصفحة الحالية فقط
-    features = []
-    for student in page_obj:
-        econ   = getattr(student, 'economic_situation', None)
+    # ✨ التنبؤ يتم على جميع الطلاب المطابقين
+    all_features = []
+    student_map = []
+    for student in qs:
+        econ = getattr(student, 'economic_situation', None)
         health = getattr(student, 'health_information', None)
-        tech   = getattr(student, 'tech_and_social', None)
+        tech = getattr(student, 'tech_and_social', None)
 
-        features.append([
+        if not all([econ, health, tech]):
+            continue
+
+        all_features.append([
             student.attendance_percentage or 0.0,
-            student.avg_score           or 0.0,
+            student.avg_score or 0.0,
             getattr(econ, 'daily_study_hours', 0.0),
             1 if econ and econ.has_private_study_room else 0,
             1 if econ and econ.has_stationery else 0,
             1 if econ and econ.receives_private_tutoring else 0,
             1 if econ and econ.works_after_school else 0,
             float(getattr(econ, 'family_income_level', 0.0)),
-            # housing_status one-hot
             1 if econ and econ.housing_status == "Owned" else 0,
             1 if econ and econ.housing_status == "Rented" else 0,
             1 if econ and econ.housing_status == "Temporary Shelter" else 0,
             1 if econ and econ.housing_status == "None" else 0,
-            # health fields
             1 if health and health.motivation == "High" else 0,
             1 if health and health.depression else 0,
             1 if health and health.academic_stress == "High" else 0,
             1 if health and health.study_life_balance == "Good" else 0,
             1 if health and health.family_pressures == "High" else 0,
             1 if health and health.sleep_disorder == "High" else 0,
-            # tech fields
             getattr(tech, 'daily_screen_time', 0.0),
             1 if tech and tech.plays_video_games else 0,
             getattr(tech, 'daily_gaming_hours', 0.0),
@@ -88,27 +82,34 @@ def performance_dashboard(request):
             1 if tech and tech.content_type_watched == "Entertainment" else 0,
             1 if tech and tech.content_type_watched == "News" else 0,
         ])
+        student_map.append(student)
 
-    # 5) نفّذ التنبؤ دفعة واحدة
     try:
-        preds_encoded = model.predict(features)
+        preds_encoded = model.predict(all_features)
     except Exception as e:
         print(f"[PREDICTION ERROR] Batch predict failed: {e}")
-        preds_encoded = [None] * len(features)
+        preds_encoded = [None] * len(student_map)
 
     categories = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
+    prediction_dict = {
+        student.id: categories[code] if code is not None and 0 <= code < len(categories) else "Error"
+        for student, code in zip(student_map, preds_encoded)
+    }
 
-    # 6) جهّز النتائج لتمريرها للقالب
+    # ✨ التقسيم للعرض فقط
+    paginator = Paginator(qs, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     results = []
-    for student, code in zip(page_obj, preds_encoded):
-        label = categories[code] if code is not None and 0 <= code < len(categories) else "Error"
+    for student in page_obj:
         results.append({
             "student": student,
-            "predicted_performance": label
+            "predicted_performance": prediction_dict.get(student.id, "Not Available")
         })
 
     return render(request, "predictor/performance_dashboard.html", {
-        "results":  results,
+        "results": results,
         "page_obj": page_obj,
-        "q":         q,
+        "q": q,
     })
