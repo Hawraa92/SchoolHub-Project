@@ -1,24 +1,21 @@
+
 import os
 import joblib
 
 from django.conf import settings
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Avg, Q
+from django.db.models import Avg
 from django.core.paginator import Paginator
 
 from students.models import Student
 
-# Path to the serialized model
 MODEL_PATH = os.path.join(
     settings.BASE_DIR,
     'predictor', 'ml_models', 'student_performance_model.pkl'
 )
 
 def load_model():
-    """
-    Attempt to load the prediction model from disk.
-    """
     try:
         return joblib.load(MODEL_PATH)
     except Exception as e:
@@ -28,31 +25,29 @@ def load_model():
 @login_required
 @user_passes_test(lambda u: u.is_staff or u.groups.filter(name='Teachers').exists())
 def performance_dashboard(request):
-    """
-    Renders the student performance dashboard, with server-side search and pagination.
-    """
     model = load_model()
     if model is None:
         return render(request, "predictor/error.html", {
             "message": "The prediction model could not be loaded."
         })
 
-    # 1) Read search query and build base queryset
-    q = request.GET.get('q', '').strip()
+    # 1) جلب الطلاب مع حساب متوسط الدرجات في SQL وتهيئة العلاقات الجانبية
     qs = (
         Student.objects
-        .select_related('economic_situation', 'health_information', 'tech_and_social')
+        .select_related(
+            'economic_situation',
+            'health_information',
+            'tech_and_social'
+        )
         .annotate(avg_score=Avg('grades__score'))
     )
-    if q:
-        qs = qs.filter(full_name__icontains=q)
 
-    # 2) Paginate the queryset: 20 students per page
+    # 2) تقسيم النتائج إلى صفحات (20 طالب لكل صفحة)
     paginator   = Paginator(qs, 20)
     page_number = request.GET.get('page')
     page_obj    = paginator.get_page(page_number)
 
-    # 3) Build feature matrix for current page only
+    # 3) بناء مصفوفة الميزات للطلاب في الصفحة الحالية فقط
     features = []
     for student in page_obj:
         econ   = getattr(student, 'economic_situation', None)
@@ -91,7 +86,7 @@ def performance_dashboard(request):
             1 if tech and tech.content_type_watched == "News" else 0,
         ])
 
-    # 4) Batch predict for the current page
+    # 4) نفّذ التنبؤ دفعة واحدة
     try:
         preds_encoded = model.predict(features)
     except Exception as e:
@@ -100,23 +95,15 @@ def performance_dashboard(request):
 
     categories = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
 
-    # 5) Assemble results
     results = []
     for student, code in zip(page_obj, preds_encoded):
-        label = (
-            categories[code]
-            if code is not None and 0 <= code < len(categories)
-            else "Error"
-        )
+        label = categories[code] if code is not None and 0 <= code < len(categories) else "Error"
         results.append({
             "student": student,
             "predicted_performance": label
         })
 
-    # 6) Render template with context
     return render(request, "predictor/performance_dashboard.html", {
         "results":  results,
-        "page_obj": page_obj,
-        "total":    qs.count(),
-        "query":    q,
+        "page_obj": page_obj
     })
