@@ -1,11 +1,10 @@
-
 import os
 import joblib
 
 from django.conf import settings
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from django.core.paginator import Paginator
 
 from students.models import Student
@@ -34,20 +33,24 @@ def performance_dashboard(request):
     # 1) جلب الطلاب مع حساب متوسط الدرجات في SQL وتهيئة العلاقات الجانبية
     qs = (
         Student.objects
-        .select_related(
-            'economic_situation',
-            'health_information',
-            'tech_and_social'
-        )
+        .select_related('economic_situation', 'health_information', 'tech_and_social')
         .annotate(avg_score=Avg('grades__score'))
     )
 
-    # 2) تقسيم النتائج إلى صفحات (20 طالب لكل صفحة)
+    # 2) فلترة بناءً على كلمة البحث q (على الاسم الأول أو الأخير)
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q)
+        )
+
+    # 3) تقسيم النتائج إلى صفحات (20 طالب لكل صفحة)
     paginator   = Paginator(qs, 20)
     page_number = request.GET.get('page')
     page_obj    = paginator.get_page(page_number)
 
-    # 3) بناء مصفوفة الميزات للطلاب في الصفحة الحالية فقط
+    # 4) بناء مصفوفة الميزات للطلاب في الصفحة الحالية فقط
     features = []
     for student in page_obj:
         econ   = getattr(student, 'economic_situation', None)
@@ -86,7 +89,7 @@ def performance_dashboard(request):
             1 if tech and tech.content_type_watched == "News" else 0,
         ])
 
-    # 4) نفّذ التنبؤ دفعة واحدة
+    # 5) نفّذ التنبؤ دفعة واحدة
     try:
         preds_encoded = model.predict(features)
     except Exception as e:
@@ -95,6 +98,7 @@ def performance_dashboard(request):
 
     categories = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
 
+    # 6) جهّز النتائج لتمريرها للقالب
     results = []
     for student, code in zip(page_obj, preds_encoded):
         label = categories[code] if code is not None and 0 <= code < len(categories) else "Error"
@@ -105,5 +109,6 @@ def performance_dashboard(request):
 
     return render(request, "predictor/performance_dashboard.html", {
         "results":  results,
-        "page_obj": page_obj
+        "page_obj": page_obj,
+        "q":         q,
     })
