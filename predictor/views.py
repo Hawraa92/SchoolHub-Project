@@ -1,5 +1,6 @@
 import os
 import joblib
+import logging
 
 from django.conf import settings
 from django.shortcuts import render
@@ -9,17 +10,30 @@ from django.core.paginator import Paginator
 
 from students.models import Student
 
+logger = logging.getLogger(__name__)
+
 MODEL_PATH = os.path.join(
     settings.BASE_DIR,
     'predictor', 'ml_models', 'student_performance_model.pkl'
 )
 
+_MODEL = None
+
 def load_model():
-    try:
-        return joblib.load(MODEL_PATH)
-    except Exception as e:
-        print(f"[MODEL LOAD ERROR] {e}")
-        return None
+    global _MODEL
+    if _MODEL is None:
+        exists = os.path.exists(MODEL_PATH)
+        logger.debug(f"MODEL_PATH = {MODEL_PATH} | exists = {exists}")
+        if not exists:
+            logger.error(f"Model file not found at {MODEL_PATH}")
+            return None
+        try:
+            _MODEL = joblib.load(MODEL_PATH)
+            logger.info("Model loaded successfully.")
+        except Exception as e:
+            logger.error(f"Failed to load model: {e}", exc_info=True)
+            return None
+    return _MODEL
 
 @login_required
 @user_passes_test(lambda u: u.is_staff or u.groups.filter(name='Teachers').exists())
@@ -36,27 +50,24 @@ def performance_dashboard(request):
         .annotate(avg_score=Avg('grades__score'))
     )
 
-    # 2) فلترة بناءً على كلمة البحث q (على الاسم الأول أو الأخير)
     q = request.GET.get('q', '').strip()
     if q:
         qs = qs.filter(
-            Q(first_name__icontains=q) |
-            Q(last_name__icontains=q)
+            Q(full_name__icontains=q)
         )
 
-    paginator   = Paginator(qs, 20)
-    page_number = request.GET.get('page')
-    page_obj    = paginator.get_page(page_number)
+    paginator = Paginator(qs, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     features = []
     for student in page_obj:
-        econ   = getattr(student, 'economic_situation', None)
+        econ = getattr(student, 'economic_situation', None)
         health = getattr(student, 'health_information', None)
-        tech   = getattr(student, 'tech_and_social', None)
+        tech = getattr(student, 'tech_and_social', None)
 
         features.append([
             student.attendance_percentage or 0.0,
-            student.avg_score           or 0.0,
+            student.avg_score or 0.0,
             getattr(econ, 'daily_study_hours', 0.0),
             1 if econ and econ.has_private_study_room else 0,
             1 if econ and econ.has_stationery else 0,
@@ -89,21 +100,30 @@ def performance_dashboard(request):
     try:
         preds_encoded = model.predict(features)
     except Exception as e:
-        print(f"[PREDICTION ERROR] Batch predict failed: {e}")
+        logger.error(f"Prediction error: {e}", exc_info=True)
         preds_encoded = [None] * len(features)
 
-    categories = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
+    CATEGORY_LABELS = [
+        "Average",
+        "Excellent",
+        "Good",
+        "Needs Improvement",
+        "Very Good",
+    ]
 
     results = []
     for student, code in zip(page_obj, preds_encoded):
-        label = categories[code] if code is not None and 0 <= code < len(categories) else "Error"
+        if code is not None and 0 <= code < len(CATEGORY_LABELS):
+            label = CATEGORY_LABELS[code]
+        else:
+            label = "Error"
         results.append({
             "student": student,
             "predicted_performance": label
         })
 
-    return render(request, "templates/predictor/performance_dashboard.html", {
-        "results":  results,
+    return render(request, "predictor/performance_dashboard.html", {
+        "results": results,
         "page_obj": page_obj,
-        "q":         q,
+        "q": q,
     })

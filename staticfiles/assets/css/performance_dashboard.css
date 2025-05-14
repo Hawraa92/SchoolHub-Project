@@ -119,7 +119,7 @@
     background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   }
   .table th {
-    color: #fff;
+    color: rgba(249, 155, 15, 0.873);
     font-weight: 600;
     text-transform: uppercase;
     padding: var(--space-sm);
@@ -190,6 +190,8 @@
   .text-gradient {
     background: linear-gradient(45deg, var(--secondary-color), var(--accent-color));
     -webkit-background-clip: text;
+    background-clip: text;
+
     color: transparent;
   }
   .sr-only {

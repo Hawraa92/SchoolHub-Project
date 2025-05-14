@@ -7,10 +7,13 @@
     <!-- Page Title -->
     <h1 class="text-center text-gradient mb-4">Student Performance Predictions</h1>
 
-    <!-- Search Box -->
-    <div class="search-box mb-4 text-center">
-      <input type="text" id="searchInput" class="form-control w-50 mx-auto" placeholder="Search student name...">
-    </div>
+    <!-- Server-side Search Form -->
+    <form method="get" class="search-box mb-4 text-center">
+      <div class="input-group w-50 mx-auto">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search student name..." aria-label="Search student name">
+        <button class="btn btn-primary" type="submit">Search</button>
+      </div>
+    </form>
 
     <!-- Total Students Counter -->
     <div class="text-center mb-3 text-muted">
@@ -22,11 +25,11 @@
       <table class="table table-hover align-middle text-center">
         <thead class="table-dark">
           <tr>
-            <th>Student Name</th>
-            <th>Predicted Performance</th>
+            <th scope="col">Student Name</th>
+            <th scope="col">Predicted Performance</th>
           </tr>
         </thead>
-        <tbody id="studentsTable">
+        <tbody>
           {% for result in results %}
           <tr>
             <td>{{ result.student.full_name }}</td>
@@ -50,7 +53,7 @@
       <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
           <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}" aria-label="Previous">Previous</a>
           </li>
         {% else %}
           <li class="page-item disabled"><span class="page-link">Previous</span></li>
@@ -62,7 +65,7 @@
 
         {% if page_obj.has_next %}
           <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}" aria-label="Next">Next</a>
           </li>
         {% else %}
           <li class="page-item disabled"><span class="page-link">Next</span></li>
@@ -72,25 +75,4 @@
 
   </div>
 </div>
-
-<!-- Live Search Script -->
-<script>
-  document.getElementById('searchInput').addEventListener('keyup', function() {
-    let value = this.value.toLowerCase();
-    let rows  = document.querySelectorAll('#studentsTable tr');
-    let visibleCount = 0;
-
-    rows.forEach(row => {
-      let text = row.innerText.toLowerCase();
-      if (text.includes(value)) {
-        row.style.display = '';
-        visibleCount++;
-      } else {
-        row.style.display = 'none';
-      }
-    });
-
-    document.getElementById('studentsCount').innerText = visibleCount;
-  });
-</script>
 {% endblock %}

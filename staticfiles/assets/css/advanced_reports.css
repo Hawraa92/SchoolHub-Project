@@ -1,0 +1,111 @@
+/* advanced_reports.css */
+
+/* ================================
+   General Card & Container Styles
+   ================================ */
+   .container {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .card {
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+  }
+  
+  /* ====================
+     Typography & Helpers
+     ==================== */
+  .text-gradient {
+    background: linear-gradient(45deg, #10cab7, #2c4755);
+    -webkit-background-clip: text;
+    background-clip: text;             /* ← هذا السطر القياسي */
+
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* =================
+     Navbar Adjustments
+     ================= */
+  .navbar .navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .navbar .btn-outline-light {
+    margin-left: 1rem;
+  }
+  
+  /* =================
+     Search Box Styling
+     ================= */
+  .search-box input {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+  }
+  
+  /* =================
+     Table Customization
+     ================= */
+  .table-hover tbody tr:hover {
+    background-color: rgba(16, 202, 183, 0.1);
+  }
+  
+  .table th, .table td {
+    vertical-align: middle;
+  }
+  
+  /* =======================
+     Pagination Styling
+     ======================= */
+  .pagination .page-item .page-link {
+    color: #2c4755;
+    border-radius: 0.25rem;
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: #10cab7;
+    border-color: #10cab7;
+    color: #fff;
+  }
+  
+  .pagination .page-item.disabled .page-link {
+    color: #6c757d;
+  }
+  
+  /* ===========================
+     Performance Label Badges
+     =========================== */
+  .performance-label {
+    display: inline-block;
+    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  .performance-average             { background-color: #6c757d; color: #fff; }
+  .performance-excellent           { background-color: #28a745; color: #fff; }
+  .performance-good                { background-color: #17a2b8; color: #fff; }
+  .performance-needs-improvement   { background-color: #ffc107; color: #212529; }
+  .performance-very-good           { background-color: #007bff; color: #fff; }
+  
+  /* ====================
+     Responsive Tweaks
+     ==================== */
+  @media (max-width: 576px) {
+    .search-box input {
+      max-width: 100%;
+    }
+    .table-responsive {
+      font-size: 0.9rem;
+    }
+  }
+  

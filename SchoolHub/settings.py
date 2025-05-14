@@ -20,6 +20,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 
+
 ALLOWED_HOSTS = ['schoolhub-project.onrender.com']
 
 
@@ -38,7 +39,7 @@ INSTALLED_APPS = [
     'teachers',
     'students',
     'reports',
-    
+    'predictor',
 ]
 
 MIDDLEWARE = [
@@ -81,6 +82,7 @@ DATABASES = {
     )
 }
 
+
 AUTH_USER_MODEL = 'accounts.User'
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -95,17 +97,37 @@ TIME_ZONE = 'Asia/Baghdad'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# # Static files (CSS, JavaScript, Images)
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# STATICFILES_FINDERS = [
+#     "django.contrib.staticfiles.finders.FileSystemFinder",
+#     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+# ]
+# WHITENOISE_USE_FINDERS = True
+
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 WHITENOISE_USE_FINDERS = True
+if DEBUG:
+    # للتطوير المحلي: استخدمي التخزين الافتراضي لخدمة static بسرعة
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+else:
+    # للإنتاج (على Render مثلاً): اعيدي تمكين Manifest storage
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+
 
 # Media files (user-uploaded)
 MEDIA_URL = '/media/'
