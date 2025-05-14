@@ -60,21 +60,18 @@ def prepare_features(student):
 @user_passes_test(lambda u: u.is_staff or u.groups.filter(name='Teachers').exists())
 def performance_dashboard(request):
     q = request.GET.get('q', '').strip()
-    qs = Student.objects.select_related(
+
+    students = Student.objects.select_related(
         'economic_situation', 'health_information', 'tech_and_social'
     ).annotate(
         avg_score=Avg('grades__score')
     )
+
     if q:
-        qs = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q))
+        students = students.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q))
 
-    paginator = Paginator(qs, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    # إعداد الميزات لكل طالب في الصفحة
-    feature_list = [prepare_features(s) for s in page_obj]
-    student_map = list(page_obj)
+    feature_list = [prepare_features(s) for s in students]
+    student_map = list(students)
 
     try:
         preds = MODEL.predict(feature_list)
@@ -82,11 +79,15 @@ def performance_dashboard(request):
         print(f"[PREDICTION ERROR] {e}")
         preds = [None] * len(student_map)
 
-    # بناء قاموس التنبؤ
     prediction_dict = {
         stu.id: CATEGORIES[code] if code is not None and 0 <= code < len(CATEGORIES) else "Error"
         for stu, code in zip(student_map, preds)
     }
+
+    # التصفح
+    paginator = Paginator(student_map, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     results = [
         {
@@ -100,4 +101,5 @@ def performance_dashboard(request):
         "results": results,
         "page_obj": page_obj,
         "q": q,
+        "total_students": students.count(),
     })
