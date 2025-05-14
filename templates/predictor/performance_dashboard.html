@@ -7,7 +7,7 @@
     <!-- Page Title -->
     <h1 class="text-center text-gradient mb-4">Student Performance Predictions</h1>
 
-    <!-- Search Form -->
+    <!-- Search Form (Backend) -->
     <form method="get" class="mb-4 text-center">
       <input
         type="text"
@@ -19,12 +19,12 @@
       <button type="submit" class="btn btn-outline-primary mt-2">Search</button>
     </form>
 
-    <!-- Total Students Counter -->
+    <!-- Total Students -->
     <div class="text-center mb-3 text-muted">
       Total Students: {{ page_obj.paginator.count }}
     </div>
 
-    <!-- Performance Table -->
+    <!-- Results Table -->
     <div class="table-responsive">
       <table class="table table-hover align-middle text-center">
         <thead class="table-dark">
@@ -52,7 +52,7 @@
       </table>
     </div>
 
-    <!-- Pagination Controls -->
+    <!-- Pagination -->
     <nav aria-label="Page navigation" class="mt-4">
       <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}

@@ -74,8 +74,8 @@ def performance_dashboard(request):
     # 2) Apply search filter if provided
     if q:
         students = students.filter(
-            Q(first_name__icontains=q) | Q(last_name__icontains=q)
-        )
+    Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(full_name__icontains=q)
+)
 
     # 3) Prepare features & predict for all matched students
     feature_list = [prepare_features(s) for s in students]
