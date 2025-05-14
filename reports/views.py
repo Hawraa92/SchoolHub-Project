@@ -1,203 +1,129 @@
-import json
-import datetime
-from django.db.models import Count
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
+import os
+import joblib
+
+from django.conf import settings
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Avg, Q
 from django.core.paginator import Paginator
 
-from .models import Report, ReportCategory
-from .report_builder import ReportBuilder
 from students.models import Student
-from .evaluation import compute_evaluation_metrics
+from .models import Prediction
+
+# MODEL_PATH = os.path.join(
+#     settings.BASE_DIR,
+#     'predictor', 'ml_models', 'student_performance_model.pkl'
+# )
 
 
-def reports_list(request):
-    """
-    Displays a paginated list of reports (20 per page).
-    """
-    all_reports = Report.objects.all()
-    paginator = Paginator(all_reports, 20)  # 20 reports per page
+MODEL_PATH = os.path.join(
+    settings.BASE_DIR,
+    'static', 'ml_models', 'student_performance_model.pkl'
+)
+
+
+def load_model():
+    try:
+        return joblib.load(MODEL_PATH)
+    except Exception as e:
+        print(f"[MODEL LOAD ERROR] {e}")
+        return None
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or u.groups.filter(name='Teachers').exists())
+def performance_dashboard(request):
+    model = load_model()
+    if model is None:
+        return render(request, "predictor/error.html", {
+            "message": "The prediction model could not be loaded."
+        })
+
+    qs = (
+        Student.objects
+        .select_related('economic_situation', 'health_information', 'tech_and_social')
+        .annotate(avg_score=Avg('grades__score'))
+    )
+
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q)
+        )
+
+    paginator   = Paginator(qs, 20)
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, "reports/reports_list.html", {"page_obj": page_obj})
+    page_obj    = paginator.get_page(page_number)
 
+    features = []
+    valid_students = []
 
-def view_report(request, report_id):
-    """
-    Displays a detailed view of a single report.
-    """
-    report = get_object_or_404(Report, pk=report_id)
-    return render(request, "reports/view_report.html", {"report": report})
+    for student in page_obj:
+        econ   = getattr(student, 'economic_situation', None)
+        health = getattr(student, 'health_information', None)
+        tech   = getattr(student, 'tech_and_social', None)
 
+        if not all([econ, health, tech]):
+            continue
 
-def reports_by_category(request, category):
-    """
-    Displays reports filtered by category.
-    """
-    reports = Report.objects.filter(category=category)
-    category_display = dict(ReportCategory.choices).get(category, category)
-    return render(request, "reports/reports_by_category.html", {"reports": reports, "category": category_display})
-
-
-def export_reports_pdf_view(request):
-    """
-    Exports all reports as a PDF document.
-    """
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import letter
-
-    reports = Report.objects.all()
-    response = HttpResponse(content_type="application/pdf")
-    filename = f'reports_{datetime.datetime.now().strftime("%Y%m%d")}.pdf'
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
-    pdf = canvas.Canvas(response, pagesize=letter)
-    y = 750
-    for report in reports:
-        if y < 100:
-            pdf.showPage()
-            y = 750
-        pdf.setFont("Helvetica-Bold", 12)
-        pdf.drawString(100, y, f"Report for {report.student.full_name} - {report.get_category_display()}")
-        y -= 20
-        pdf.setFont("Helvetica", 10)
-        pdf.drawString(100, y, f"Report Type: {report.report_type} | Generated At: {report.generated_at}")
-        y -= 25
-        if isinstance(report.data, dict):
-            for key, value in report.data.items():
-                pdf.drawString(120, y, f"{key}: {value}")
-                y -= 15
-                if y < 100:
-                    pdf.showPage()
-                    y = 750
-        else:
-            pdf.drawString(120, y, f"Data: {report.data}")
-            y -= 15
-        y -= 20
-    pdf.save()
-    return response
-
-
-def export_reports_csv_view(request):
-    """
-    Exports all reports as a CSV file.
-    """
-    import csv
-
-    reports = Report.objects.all()
-    response = HttpResponse(content_type="text/csv")
-    filename = f'reports_{datetime.datetime.now().strftime("%Y%m%d")}.csv'
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
-    writer = csv.writer(response)
-    writer.writerow(["Student", "Category", "Report Type", "Generated At", "Data"])
-    for report in reports:
-        writer.writerow([
-            report.student.full_name,
-            report.get_category_display(),
-            report.report_type,
-            report.generated_at,
-            report.data,
+        features.append([
+            student.attendance_percentage or 0.0,
+            student.avg_score           or 0.0,
+            getattr(econ, 'daily_study_hours', 0.0),
+            1 if econ and econ.has_private_study_room else 0,
+            1 if econ and econ.has_stationery else 0,
+            1 if econ and econ.receives_private_tutoring else 0,
+            1 if econ and econ.works_after_school else 0,
+            float(getattr(econ, 'family_income_level', 0.0)),
+            1 if econ and econ.housing_status == "Owned" else 0,
+            1 if econ and econ.housing_status == "Rented" else 0,
+            1 if econ and econ.housing_status == "Temporary Shelter" else 0,
+            1 if econ and econ.housing_status == "None" else 0,
+            1 if health and health.motivation == "High" else 0,
+            1 if health and health.depression else 0,
+            1 if health and health.academic_stress == "High" else 0,
+            1 if health and health.study_life_balance == "Good" else 0,
+            1 if health and health.family_pressures == "High" else 0,
+            1 if health and health.sleep_disorder == "High" else 0,
+            getattr(tech, 'daily_screen_time', 0.0),
+            1 if tech and tech.plays_video_games else 0,
+            getattr(tech, 'daily_gaming_hours', 0.0),
+            1 if tech and tech.social_media_impact_on_studies == "Negative" else 0,
+            1 if tech and tech.content_type_watched == "Gaming" else 0,
+            1 if tech and tech.content_type_watched == "Educational" else 0,
+            1 if tech and tech.content_type_watched == "Entertainment" else 0,
+            1 if tech and tech.content_type_watched == "News" else 0,
         ])
-    return response
+        valid_students.append(student)
 
+ 
+    try:
+        preds_encoded = model.predict(features)
+    except Exception as e:
+        print(f"[PREDICTION ERROR] Batch predict failed: {e}")
+        preds_encoded = [None] * len(features)
 
-def generate_single_student_report(request, student_id):
-    """
-    Generates a report for a single student based on selected category.
-    """
-    student = get_object_or_404(Student, pk=student_id)
-    if request.method == "POST":
-        selected_category = request.POST.get("report_category")
-        builder = ReportBuilder(student, selected_category)
-        new_report = builder.build()
-        return redirect('view_report', report_id=new_report.id)
-    return render(request, "reports/generate_single.html", {"student": student})
+    categories = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
 
+    results = []
+    for student, code in zip(valid_students, preds_encoded):
+        label = categories[code] if code is not None and 0 <= code < len(categories) else "Error"
 
-def import_reports_csv_view(request):
-    """
-    Allows the user to upload a CSV file to import reports in bulk.
-    """
-    import csv, io
+        print(f"→ Prediction: {student.full_name} = {label}")  
 
-    if request.method == "POST":
-        csv_file = request.FILES.get("csv_file")
-        if not csv_file:
-            return render(request, "reports/import_reports.html", {"error_message": "No file was uploaded."})
-        if not csv_file.name.endswith(".csv"):
-            return render(request, "reports/import_reports.html", {"error_message": "Please upload a valid CSV file (must end with .csv)."})
-
-        decoded_file = csv_file.read().decode('utf-8', errors='replace')
-        io_string = io.StringIO(decoded_file)
-        reader = csv.DictReader(io_string)
-        created_count = 0
-        for row in reader:
-            student_email   = row.get("StudentEmail")
-            category_key    = row.get("Category", "personal")
-            report_data_str = row.get("ReportData", "{}")
-            try:
-                student = Student.objects.get(email=student_email)
-            except Student.DoesNotExist:
-                continue
-            try:
-                parsed_data = json.loads(report_data_str)
-            except json.JSONDecodeError:
-                parsed_data = {"CSV Import": report_data_str}
-            Report.objects.create(
+        if label != "Error":
+            Prediction.objects.update_or_create(
                 student=student,
-                category=category_key,
-                report_type="Imported",
-                data=parsed_data
+                defaults={"performance": label}
             )
-            created_count += 1
-        return render(request, "reports/import_reports.html", {"success_message": f"{created_count} reports imported successfully!"})
-    return render(request, "reports/import_reports.html")
 
+        results.append({
+            "student": student,
+            "predicted_performance": label
+        })
 
-def generate_report_dropdown(request):
-    """
-    Generates a report based on dropdown selection of student and category.
-    """
-    if request.method == "POST":
-        student_id        = request.POST.get("student_id")
-        selected_category = request.POST.get("report_category")
-        student = get_object_or_404(Student, pk=student_id)
-        builder = ReportBuilder(student, selected_category)
-        new_report = builder.build()
-        return redirect('view_report', report_id=new_report.id)
-    students = Student.objects.all()
-    return render(request, "reports/generate_dropdown.html", {"students": students})
-
-
-def dashboard_view(request):
-    """
-    Dashboard view to aggregate and display analytics for reports and evaluation metrics.
-    Limits data processed to reduce memory usage on low-RAM environments.
-    """
-    # Aggregations over all reports
-    total_reports = Report.objects.count()
-    category_counts = Report.objects.values('category').annotate(count=Count('id'))
-    category_data = { dict(ReportCategory.choices)[e['category']]: e['count'] for e in category_counts }
-    status_counts = Report.objects.values('status').annotate(count=Count('id'))
-    status_data = { e['status']: e['count'] for e in status_counts }
-
-    # Limit student dataset for performance
-    MAX_STUDENTS = 200
-    students_qs = Student.objects.all()[:MAX_STUDENTS]
-    level_counts = students_qs.values('academic_performance').annotate(count=Count('id'))
-    levels_data = { (e['academic_performance'] or "Not Specified"): e['count'] for e in level_counts }
-
-    # Dummy evaluation data (replace with real y_true, y_pred lists)
-    y_true = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]
-    y_pred = [1, 0, 0, 1, 0, 1, 0, 1, 1, 0]
-    evaluation_metrics = compute_evaluation_metrics(y_true, y_pred)
-
-    context = {
-        'total_reports': total_reports,
-        'category_data': category_data,
-        'status_data':   status_data,
-        'evaluation_metrics': evaluation_metrics,
-        'levels_data':   levels_data,
-    }
-    return render(request, 'reports/dashboard.html', context)
+    return render(request, "predictor/performance_dashboard.html", {
+        "results":  results,
+        "page_obj": page_obj,
+        "q":         q,
+    })
