@@ -4,20 +4,25 @@
 <div class="container my-5">
   <div class="card shadow p-5">
 
-    <!-- Page Title -->
+    <!-- Title -->
     <h1 class="text-center text-gradient mb-4">Student Performance Predictions</h1>
 
-    <!-- Search Box -->
-    <div class="search-box mb-4 text-center">
-      <input type="text" id="searchInput" class="form-control w-50 mx-auto" placeholder="Search student name...">
-    </div>
+    <!-- Search form (يُرسل GET للخادم) -->
+    <form method="get" class="d-flex justify-content-center mb-4" id="searchForm">
+      <input type="text"
+             name="q"
+             value="{{ q }}"
+             class="form-control w-50 me-2"
+             placeholder="Search student name…">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
 
-    <!-- Total Students Counter -->
+    <!-- إجمالي الطلاب المطابقين -->
     <div class="text-center mb-3 text-muted">
-      Total Students: <span id="studentsCount">{{ page_obj.paginator.count }}</span>
+      Total Students: {{ page_obj.paginator.count }}
     </div>
 
-    <!-- Performance Table -->
+    <!-- Table -->
     <div class="table-responsive">
       <table class="table table-hover align-middle text-center">
         <thead class="table-dark">
@@ -26,7 +31,7 @@
             <th>Predicted Performance</th>
           </tr>
         </thead>
-        <tbody id="studentsTable">
+        <tbody>
           {% for result in results %}
           <tr>
             <td>{{ result.student.full_name }}</td>
@@ -45,15 +50,16 @@
       </table>
     </div>
 
-    <!-- Pagination Controls -->
+    <!-- Pagination (يختفي إذا كانت صفحة واحدة) -->
+    {% if page_obj.paginator.num_pages > 1 %}
     <nav aria-label="Page navigation" class="mt-4">
       <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-          </li>
+        <li class="page-item">
+          <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
         {% else %}
-          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        <li class="page-item disabled"><span class="page-link">Previous</span></li>
         {% endif %}
 
         <li class="page-item disabled">
@@ -61,36 +67,16 @@
         </li>
 
         {% if page_obj.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-          </li>
+        <li class="page-item">
+          <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+        </li>
         {% else %}
-          <li class="page-item disabled"><span class="page-link">Next</span></li>
+        <li class="page-item disabled"><span class="page-link">Next</span></li>
         {% endif %}
       </ul>
     </nav>
+    {% endif %}
 
   </div>
 </div>
-
-<!-- Live Search Script -->
-<script>
-  document.getElementById('searchInput').addEventListener('keyup', function() {
-    let value = this.value.toLowerCase();
-    let rows  = document.querySelectorAll('#studentsTable tr');
-    let visibleCount = 0;
-
-    rows.forEach(row => {
-      let text = row.innerText.toLowerCase();
-      if (text.includes(value)) {
-        row.style.display = '';
-        visibleCount++;
-      } else {
-        row.style.display = 'none';
-      }
-    });
-
-    document.getElementById('studentsCount').innerText = visibleCount;
-  });
-</script>
 {% endblock %}

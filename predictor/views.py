@@ -9,112 +9,109 @@ from django.core.paginator import Paginator
 
 from students.models import Student
 
-# ——— Load model once —————————————————————————————
 MODEL_PATH = os.path.join(
     settings.BASE_DIR,
-    'predictor', 'ml_models', 'student_performance_model.pkl'
+    "predictor", "ml_models", "student_performance_model.pkl"
 )
-MODEL = joblib.load(MODEL_PATH)
 
 CATEGORIES = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
 
-def prepare_features(student):
-    econ   = getattr(student, 'economic_situation', None)
-    health = getattr(student, 'health_information', None)
-    tech   = getattr(student, 'tech_and_social', None)
 
-    return [
-        # Attendance & avg score
-        student.attendance_percentage or 0.0,
-        getattr(student, 'avg_score', 0.0),
+def load_model():
+    """Load the pickled ML model once."""
+    try:
+        return joblib.load(MODEL_PATH)
+    except Exception as e:
+        print(f"[MODEL LOAD ERROR] {e}")
+        return None
 
-        # Economic
-        econ.daily_study_hours if econ else 0.0,
-        1 if econ and econ.has_private_study_room else 0,
-        1 if econ and econ.has_stationery else 0,
-        1 if econ and econ.receives_private_tutoring else 0,
-        1 if econ and econ.works_after_school else 0,
-        float(econ.family_income_level or 0.0) if econ else 0.0,
-        1 if econ and econ.housing_status == "Owned" else 0,
-        1 if econ and econ.housing_status == "Rented" else 0,
-        1 if econ and econ.housing_status == "Temporary Shelter" else 0,
-        1 if econ and econ.housing_status == "None" else 0,
-
-        # Health
-        1 if health and health.motivation == "High" else 0,
-        1 if health and health.depression else 0,
-        1 if health and health.academic_stress == "High" else 0,
-        1 if health and health.study_life_balance == "Good" else 0,
-        1 if health and health.family_pressures == "High" else 0,
-        1 if health and health.sleep_disorder == "High" else 0,
-
-        # Tech & Social
-        tech.daily_screen_time if tech else 0.0,
-        1 if tech and tech.plays_video_games else 0,
-        tech.daily_gaming_hours if tech else 0.0,
-        1 if tech and tech.social_media_impact_on_studies == "Negative" else 0,
-        1 if tech and tech.content_type_watched == "Gaming" else 0,
-        1 if tech and tech.content_type_watched == "Educational" else 0,
-        1 if tech and tech.content_type_watched == "Entertainment" else 0,
-        1 if tech and tech.content_type_watched == "News" else 0,
-    ]
 
 @login_required
-@user_passes_test(lambda u: u.is_staff or u.groups.filter(name='Teachers').exists())
+@user_passes_test(lambda u: u.is_staff or u.groups.filter(name="Teachers").exists())
 def performance_dashboard(request):
-    q = request.GET.get('q', '').strip()
+    """Show paginated student list with predicted performance."""
+    model = load_model()
+    if model is None:
+        return render(request, "predictor/error.html", {
+            "message": "The prediction model could not be loaded."
+        })
 
-    # 1) Build base queryset and annotate avg_score
-    students = Student.objects.select_related(
-        'economic_situation', 'health_information', 'tech_and_social'
-    ).annotate(
-        avg_score=Avg('grades__score')
+    # ------ 1) Query + optional search filter --------------------------------
+    qs = (
+        Student.objects
+        .select_related("economic_situation", "health_information", "tech_and_social")
+        .annotate(avg_score=Avg("grades__score"))
     )
 
-    # 2) Apply search filter (safely)
+    q = request.GET.get("q", "").strip()
     if q:
-        try:
-            students = students.filter(
-                Q(first_name__icontains=q) |
-                Q(last_name__icontains=q) |
-                Q(full_name__icontains=q)  # فقط إذا عندك هذا الحقل
-            )
-        except Exception as e:
-            print(f"[SEARCH ERROR] {e}")
-            students = Student.objects.none()
+        qs = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q))
+        paginate_by = qs.count() or 1          # كل النتائج في صفحة واحدة أثناء البحث
+    else:
+        paginate_by = 20                       # الوضع الطبيعي: 20 طالب/صفحة
 
-    # 3) Prepare features & predict
-    feature_list = [prepare_features(s) for s in students]
-    student_map  = list(students)
-
-    try:
-        preds = MODEL.predict(feature_list)
-    except Exception as e:
-        print(f"[PREDICTION ERROR] {e}")
-        preds = [None] * len(student_map)
-
-    # 4) Build predictions
-    prediction_dict = {
-        stu.id: CATEGORIES[code] if code is not None and 0 <= code < len(CATEGORIES) else "Error"
-        for stu, code in zip(student_map, preds)
-    }
-
-    # 5) Pagination
-    paginator   = Paginator(student_map, 20)
-    page_number = request.GET.get('page')
+    # ------ 2) Pagination -----------------------------------------------------
+    paginator   = Paginator(qs.order_by("last_name", "first_name"), paginate_by)
+    page_number = request.GET.get("page")
     page_obj    = paginator.get_page(page_number)
 
-    # 6) Results for current page
+    # ------ 3) جمع السمات والتنبؤ --------------------------------------------
+    features = []
+    for student in page_obj:
+        econ   = getattr(student, "economic_situation", None)
+        health = getattr(student, "health_information", None)
+        tech   = getattr(student, "tech_and_social", None)
+
+        features.append([
+            student.attendance_percentage or 0.0,
+            student.avg_score or 0.0,
+            getattr(econ, "daily_study_hours", 0.0),
+            1 if econ and econ.has_private_study_room else 0,
+            1 if econ and econ.has_stationery else 0,
+            1 if econ and econ.receives_private_tutoring else 0,
+            1 if econ and econ.works_after_school else 0,
+            float(getattr(econ, "family_income_level", 0.0)),
+            # housing_status one-hot
+            1 if econ and econ.housing_status == "Owned" else 0,
+            1 if econ and econ.housing_status == "Rented" else 0,
+            1 if econ and econ.housing_status == "Temporary Shelter" else 0,
+            1 if econ and econ.housing_status == "None" else 0,
+            # health
+            1 if health and health.motivation == "High" else 0,
+            1 if health and health.depression else 0,
+            1 if health and health.academic_stress == "High" else 0,
+            1 if health and health.study_life_balance == "Good" else 0,
+            1 if health and health.family_pressures == "High" else 0,
+            1 if health and health.sleep_disorder == "High" else 0,
+            # tech
+            getattr(tech, "daily_screen_time", 0.0),
+            1 if tech and tech.plays_video_games else 0,
+            getattr(tech, "daily_gaming_hours", 0.0),
+            1 if tech and tech.social_media_impact_on_studies == "Negative" else 0,
+            1 if tech and tech.content_type_watched == "Gaming" else 0,
+            1 if tech and tech.content_type_watched == "Educational" else 0,
+            1 if tech and tech.content_type_watched == "Entertainment" else 0,
+            1 if tech and tech.content_type_watched == "News" else 0,
+        ])
+
+    try:
+        preds_encoded = model.predict(features)
+    except Exception as e:
+        print(f"[PREDICTION ERROR] {e}")
+        preds_encoded = [None] * len(features)
+
     results = [
         {
-            "student": student,
-            "predicted_performance": prediction_dict.get(student.id, "Not Available")
+            "student": s,
+            "predicted_performance": (
+                CATEGORIES[c] if c is not None and 0 <= c < len(CATEGORIES) else "Error"
+            )
         }
-        for student in page_obj
+        for s, c in zip(page_obj, preds_encoded)
     ]
 
     return render(request, "predictor/performance_dashboard.html", {
-        "results": results,
+        "results":  results,
         "page_obj": page_obj,
-        "q": q,
+        "q":        q,
     })
