@@ -9,23 +9,26 @@ from django.core.paginator import Paginator
 
 from students.models import Student
 
-# تحميل النموذج مرة واحدة (Cache)
-MODEL_PATH = os.path.join(settings.BASE_DIR, 'predictor', 'ml_models', 'student_performance_model.pkl')
+# ——— Load model once —————————————————————————————
+MODEL_PATH = os.path.join(
+    settings.BASE_DIR,
+    'predictor', 'ml_models', 'student_performance_model.pkl'
+)
 MODEL = joblib.load(MODEL_PATH)
 
 CATEGORIES = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
 
 def prepare_features(student):
-    econ = getattr(student, 'economic_situation', None)
+    econ   = getattr(student, 'economic_situation', None)
     health = getattr(student, 'health_information', None)
-    tech = getattr(student, 'tech_and_social', None)
+    tech   = getattr(student, 'tech_and_social', None)
 
     return [
-        # Attendance and average score
+        # Attendance & avg score
         student.attendance_percentage or 0.0,
         getattr(student, 'avg_score', 0.0),
 
-        # Economic situation features
+        # Economic
         econ.daily_study_hours if econ else 0.0,
         1 if econ and econ.has_private_study_room else 0,
         1 if econ and econ.has_stationery else 0,
@@ -37,7 +40,7 @@ def prepare_features(student):
         1 if econ and econ.housing_status == "Temporary Shelter" else 0,
         1 if econ and econ.housing_status == "None" else 0,
 
-        # Health information features
+        # Health
         1 if health and health.motivation == "High" else 0,
         1 if health and health.depression else 0,
         1 if health and health.academic_stress == "High" else 0,
@@ -45,7 +48,7 @@ def prepare_features(student):
         1 if health and health.family_pressures == "High" else 0,
         1 if health and health.sleep_disorder == "High" else 0,
 
-        # Tech and social features
+        # Tech & Social
         tech.daily_screen_time if tech else 0.0,
         1 if tech and tech.plays_video_games else 0,
         tech.daily_gaming_hours if tech else 0.0,
@@ -61,34 +64,40 @@ def prepare_features(student):
 def performance_dashboard(request):
     q = request.GET.get('q', '').strip()
 
+    # 1) Build base queryset and annotate avg_score
     students = Student.objects.select_related(
         'economic_situation', 'health_information', 'tech_and_social'
     ).annotate(
         avg_score=Avg('grades__score')
     )
 
+    # 2) Apply search filter if provided
     if q:
-        students = students.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q))
+        students = students.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q)
+        )
 
+    # 3) Prepare features & predict for all matched students
     feature_list = [prepare_features(s) for s in students]
-    student_map = list(students)
-
+    student_map  = list(students)
     try:
         preds = MODEL.predict(feature_list)
     except Exception as e:
         print(f"[PREDICTION ERROR] {e}")
         preds = [None] * len(student_map)
 
+    # 4) Build a lookup of student.id → category
     prediction_dict = {
         stu.id: CATEGORIES[code] if code is not None and 0 <= code < len(CATEGORIES) else "Error"
         for stu, code in zip(student_map, preds)
     }
 
-    # التصفح
-    paginator = Paginator(student_map, 20)
+    # 5) Paginate the full list
+    paginator   = Paginator(student_map, 20)
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj    = paginator.get_page(page_number)
 
+    # 6) Build results for this page
     results = [
         {
             "student": student,
@@ -101,5 +110,4 @@ def performance_dashboard(request):
         "results": results,
         "page_obj": page_obj,
         "q": q,
-        "total_students": students.count(),
     })

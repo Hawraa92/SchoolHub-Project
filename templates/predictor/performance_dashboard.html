@@ -9,7 +9,13 @@
 
     <!-- Search Form -->
     <form method="get" class="mb-4 text-center">
-      <input type="text" name="q" class="form-control w-50 d-inline-block" value="{{ q }}" placeholder="Search student name...">
+      <input
+        type="text"
+        name="q"
+        class="form-control w-50 d-inline-block"
+        value="{{ q }}"
+        placeholder="Search student name..."
+      >
       <button type="submit" class="btn btn-outline-primary mt-2">Search</button>
     </form>
 
@@ -29,18 +35,18 @@
         </thead>
         <tbody>
           {% for result in results %}
-          <tr>
-            <td>{{ result.student.full_name }}</td>
-            <td>
-              <span class="performance-label performance-{{ result.predicted_performance|slugify }}">
-                {{ result.predicted_performance }}
-              </span>
-            </td>
-          </tr>
+            <tr>
+              <td>{{ result.student.full_name }}</td>
+              <td>
+                <span class="performance-label performance-{{ result.predicted_performance|slugify }}">
+                  {{ result.predicted_performance }}
+                </span>
+              </td>
+            </tr>
           {% empty %}
-          <tr>
-            <td colspan="2" class="text-muted">No data available.</td>
-          </tr>
+            <tr>
+              <td colspan="2" class="text-muted">No data available.</td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -58,7 +64,9 @@
         {% endif %}
 
         <li class="page-item disabled">
-          <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          <span class="page-link">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </span>
         </li>
 
         {% if page_obj.has_next %}
