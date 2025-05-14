@@ -1,105 +1,64 @@
 import os
 import joblib
-
 from django.conf import settings
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Avg, Q
-from django.core.paginator import Paginator
-
 from students.models import Student
 
-# تحميل النموذج مرة واحدة (Cache)
+# تحميل النموذج من المسار
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'predictor', 'ml_models', 'student_performance_model.pkl')
-MODEL = joblib.load(MODEL_PATH)
-
-CATEGORIES = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
-
-def prepare_features(student):
-    econ = getattr(student, 'economic_situation', None)
-    health = getattr(student, 'health_information', None)
-    tech = getattr(student, 'tech_and_social', None)
-
-    return [
-        # Attendance and average score
-        student.attendance_percentage or 0.0,
-        getattr(student, 'avg_score', 0.0),
-
-        # Economic situation features
-        econ.daily_study_hours if econ else 0.0,
-        1 if econ and econ.has_private_study_room else 0,
-        1 if econ and econ.has_stationery else 0,
-        1 if econ and econ.receives_private_tutoring else 0,
-        1 if econ and econ.works_after_school else 0,
-        float(econ.family_income_level or 0.0) if econ else 0.0,
-        1 if econ and econ.housing_status == "Owned" else 0,
-        1 if econ and econ.housing_status == "Rented" else 0,
-        1 if econ and econ.housing_status == "Temporary Shelter" else 0,
-        1 if econ and econ.housing_status == "None" else 0,
-
-        # Health information features
-        1 if health and health.motivation == "High" else 0,
-        1 if health and health.depression else 0,
-        1 if health and health.academic_stress == "High" else 0,
-        1 if health and health.study_life_balance == "Good" else 0,
-        1 if health and health.family_pressures == "High" else 0,
-        1 if health and health.sleep_disorder == "High" else 0,
-
-        # Tech and social features
-        tech.daily_screen_time if tech else 0.0,
-        1 if tech and tech.plays_video_games else 0,
-        tech.daily_gaming_hours if tech else 0.0,
-        1 if tech and tech.social_media_impact_on_studies == "Negative" else 0,
-        1 if tech and tech.content_type_watched == "Gaming" else 0,
-        1 if tech and tech.content_type_watched == "Educational" else 0,
-        1 if tech and tech.content_type_watched == "Entertainment" else 0,
-        1 if tech and tech.content_type_watched == "News" else 0,
-    ]
+model = joblib.load(MODEL_PATH)
 
 @login_required
 @user_passes_test(lambda u: u.is_staff or u.groups.filter(name='Teachers').exists())
 def performance_dashboard(request):
-    q = request.GET.get('q', '').strip()
+    students = Student.objects.all()
+    results = []
 
-    students = Student.objects.select_related(
-        'economic_situation', 'health_information', 'tech_and_social'
-    ).annotate(
-        avg_score=Avg('grades__score')
-    )
+    for student in students:
+        # الوصول إلى الكائنات المرتبطة إذا كانت موجودة
+        economic = getattr(student, 'economic_situation', None)
+        health = getattr(student, 'health_information', None)
+        tech = getattr(student, 'tech_and_social', None)
 
-    if q:
-        students = students.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q))
+        # إعداد الميزات
+        features = [
+            student.attendance_percentage or 0.0,
+            student.get_average_score() or 0.0,
+            economic.daily_study_hours if economic else 0.0,
+            1 if economic and economic.has_private_study_room else 0,
+            1 if economic and economic.has_stationery else 0,
+            1 if economic and economic.receives_private_tutoring else 0,
+            1 if economic and economic.works_after_school else 0,
+            float(economic.family_income_level) if economic and economic.family_income_level else 0.0,
+            1 if economic and economic.housing_status == "Owned" else 0,
+            1 if economic and economic.housing_status == "Rented" else 0,
+            1 if economic and economic.housing_status == "Temporary Shelter" else 0,
+            1 if economic and economic.housing_status == "None" else 0,
+            1 if health and health.motivation == "High" else 0,
+            1 if health and health.depression else 0,
+            1 if health and health.academic_stress == "High" else 0,
+            1 if health and health.study_life_balance == "Good" else 0,
+            1 if health and health.family_pressures == "High" else 0,
+            1 if health and health.sleep_disorder == "High" else 0,
+            tech.daily_screen_time if tech else 0.0,
+            1 if tech and tech.plays_video_games else 0,
+            tech.daily_gaming_hours if tech else 0.0,
+            1 if tech and tech.social_media_impact_on_studies == "Negative" else 0,
+            1 if tech and tech.content_type_watched == "Gaming" else 0,
+            1 if tech and tech.content_type_watched == "Educational" else 0,
+            1 if tech and tech.content_type_watched == "Entertainment" else 0,
+            1 if tech and tech.content_type_watched == "News" else 0
+        ]
 
-    feature_list = [prepare_features(s) for s in students]
-    student_map = list(students)
+        # التنبؤ
+        pred_label_encoded = model.predict([features])[0]
+        categories = ["Average", "Excellent", "Good", "Needs Improvement", "Very Good"]
+        pred_label = categories[pred_label_encoded]
 
-    try:
-        preds = MODEL.predict(feature_list)
-    except Exception as e:
-        print(f"[PREDICTION ERROR] {e}")
-        preds = [None] * len(student_map)
-
-    prediction_dict = {
-        stu.id: CATEGORIES[code] if code is not None and 0 <= code < len(CATEGORIES) else "Error"
-        for stu, code in zip(student_map, preds)
-    }
-
-    # التصفح
-    paginator = Paginator(student_map, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    results = [
-        {
+        results.append({
             "student": student,
-            "predicted_performance": prediction_dict.get(student.id, "Not Available")
-        }
-        for student in page_obj
-    ]
+            "predicted_performance": pred_label
+        })
 
-    return render(request, "predictor/performance_dashboard.html", {
-        "results": results,
-        "page_obj": page_obj,
-        "q": q,
-        "total_students": students.count(),
-    })
+    return render(request, "predictor/performance_dashboard.html", {"results": results})
