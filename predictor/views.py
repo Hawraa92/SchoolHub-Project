@@ -71,33 +71,40 @@ def performance_dashboard(request):
         avg_score=Avg('grades__score')
     )
 
-    # 2) Apply search filter if provided
+    # 2) Apply search filter (safely)
     if q:
-        students = students.filter(
-    Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(full_name__icontains=q)
-)
+        try:
+            students = students.filter(
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(full_name__icontains=q)  # فقط إذا عندك هذا الحقل
+            )
+        except Exception as e:
+            print(f"[SEARCH ERROR] {e}")
+            students = Student.objects.none()
 
-    # 3) Prepare features & predict for all matched students
+    # 3) Prepare features & predict
     feature_list = [prepare_features(s) for s in students]
     student_map  = list(students)
+
     try:
         preds = MODEL.predict(feature_list)
     except Exception as e:
         print(f"[PREDICTION ERROR] {e}")
         preds = [None] * len(student_map)
 
-    # 4) Build a lookup of student.id → category
+    # 4) Build predictions
     prediction_dict = {
         stu.id: CATEGORIES[code] if code is not None and 0 <= code < len(CATEGORIES) else "Error"
         for stu, code in zip(student_map, preds)
     }
 
-    # 5) Paginate the full list
+    # 5) Pagination
     paginator   = Paginator(student_map, 20)
     page_number = request.GET.get('page')
     page_obj    = paginator.get_page(page_number)
 
-    # 6) Build results for this page
+    # 6) Results for current page
     results = [
         {
             "student": student,
